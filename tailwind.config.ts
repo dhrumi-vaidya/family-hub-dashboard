@@ -20,7 +20,7 @@ export default {
   	extend: {
   		fontFamily: {
   			sans: [
-  				'Inter',
+  				'Lato',
   				'ui-sans-serif',
   				'system-ui',
   				'-apple-system',
@@ -33,7 +33,7 @@ export default {
   				'sans-serif'
   			],
   			serif: [
-  				'Lora',
+  				'EB Garamond',
   				'ui-serif',
   				'Georgia',
   				'Cambria',
@@ -42,7 +42,7 @@ export default {
   				'serif'
   			],
   			mono: [
-  				'Space Mono',
+  				'Fira Code',
   				'ui-monospace',
   				'SFMono-Regular',
   				'Menlo',
@@ -54,7 +54,7 @@ export default {
   			]
   		},
   		fontSize: {
-  			'body': [
+  			body: [
   				'1rem',
   				{
   					lineHeight: '1.6'
@@ -87,7 +87,7 @@ export default {
   					fontWeight: '700'
   				}
   			],
-  			'display': [
+  			display: [
   				'2.5rem',
   				{
   					lineHeight: '1.1',
