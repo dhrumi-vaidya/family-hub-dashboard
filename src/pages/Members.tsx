@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useApp } from '@/contexts/AppContext';
+import { Hint } from '@/components/onboarding/Hint';
 import { cn } from '@/lib/utils';
 
 const members = [
@@ -79,6 +80,11 @@ export default function Members() {
           Add Member
         </Button>
       </div>
+      
+      <Hint id="members-intro">
+        Add family members and set their roles. Admins can manage everything, 
+        while Members can only view and confirm tasks assigned to them.
+      </Hint>
 
       {/* Members Grid */}
       <div className={cn(

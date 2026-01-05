@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useApp } from '@/contexts/AppContext';
+import { Hint } from '@/components/onboarding/Hint';
 import { cn } from '@/lib/utils';
 
 const healthRecords = [
@@ -73,6 +74,11 @@ export default function Health() {
           Upload Record
         </Button>
       </div>
+      
+      <Hint id="health-intro">
+        Upload medical documents like prescriptions, reports, and X-rays. 
+        Filter by family member to find records quickly. All uploads are permanent and secure.
+      </Hint>
 
       {/* Filters */}
       <Card className="animate-fade-in opacity-0" style={{ animationDelay: '0.1s' }}>

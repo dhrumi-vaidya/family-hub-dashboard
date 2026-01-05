@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/contexts/AppContext';
+import { Hint } from '@/components/onboarding/Hint';
 import { cn } from '@/lib/utils';
 
 const categories = [
@@ -48,6 +49,11 @@ export default function Expenses() {
           Add Expense
         </Button>
       </div>
+      
+      <Hint id="expenses-intro">
+        Start by setting your monthly budget. Then track expenses by category. 
+        We'll show you insights when you're close to your limits.
+      </Hint>
 
       <div className={cn(
         'grid gap-6',
