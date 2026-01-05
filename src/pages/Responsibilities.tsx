@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/contexts/AppContext';
+import { Hint } from '@/components/onboarding/Hint';
 import { cn } from '@/lib/utils';
 
 const tasks = [
@@ -68,6 +69,11 @@ export default function Responsibilities() {
           Create Task
         </Button>
       </div>
+      
+      <Hint id="responsibilities-intro">
+        Create tasks and assign them to family members. Tasks can repeat weekly, monthly, or quarterly. 
+        If a task isn't confirmed on time, it will be escalated to you.
+      </Hint>
 
       {/* Task Lifecycle */}
       {mode === 'simple' && (

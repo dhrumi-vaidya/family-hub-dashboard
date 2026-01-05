@@ -1,4 +1,4 @@
-import { Save, Bell, Shield, Eye, Smartphone } from 'lucide-react';
+import { Save, Bell, Shield, Eye, Smartphone, RotateCcw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -11,10 +11,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useApp } from '@/contexts/AppContext';
+import { Hint } from '@/components/onboarding/Hint';
 import { cn } from '@/lib/utils';
 
 export default function Settings() {
-  const { mode, setMode } = useApp();
+  const { mode, setMode, resetHints, setShowOnboarding, setHasCompletedOnboarding } = useApp();
+
+  const handleRestartTour = () => {
+    resetHints();
+    setHasCompletedOnboarding(false);
+    setShowOnboarding(true);
+  };
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -25,6 +32,11 @@ export default function Settings() {
           Configure your preferences and family settings.
         </p>
       </div>
+      
+      <Hint id="settings-intro">
+        Customize your experience here. Simple Mode shows more guidance, 
+        while Fast Mode gives you a compact view for quicker navigation.
+      </Hint>
 
       {/* Default UX Mode */}
       <Card className="animate-fade-in opacity-0" style={{ animationDelay: '0.1s' }}>
@@ -55,6 +67,21 @@ export default function Settings() {
               </SelectContent>
             </Select>
           </div>
+          
+          {mode === 'simple' && (
+            <div className="flex items-center justify-between border-t border-border pt-4">
+              <div>
+                <Label className="text-base">Reset Onboarding</Label>
+                <p className="text-sm text-muted-foreground">
+                  Restart the guided tour and show all hints again
+                </p>
+              </div>
+              <Button variant="outline" size="sm" onClick={handleRestartTour} className="gap-2">
+                <RotateCcw className="h-4 w-4" />
+                Restart Tour
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 

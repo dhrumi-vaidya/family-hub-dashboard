@@ -3,14 +3,25 @@ import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { useApp } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
-  const { mode, sidebarCollapsed } = useApp();
+  const { mode, sidebarCollapsed, showOnboarding, setShowOnboarding, setHasCompletedOnboarding } = useApp();
   const isCollapsed = mode === 'fast' ? sidebarCollapsed : false;
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    setHasCompletedOnboarding(true);
+  };
+
+  const handleOnboardingSkip = () => {
+    setShowOnboarding(false);
+    setHasCompletedOnboarding(true);
+  };
 
   return (
     <div className="flex min-h-screen w-full">
@@ -26,6 +37,14 @@ export function Layout({ children }: LayoutProps) {
           {children}
         </main>
       </div>
+      
+      {/* Onboarding Tour - only in Simple mode for first-time users */}
+      {showOnboarding && mode === 'simple' && (
+        <OnboardingTour
+          onComplete={handleOnboardingComplete}
+          onSkip={handleOnboardingSkip}
+        />
+      )}
     </div>
   );
 }
