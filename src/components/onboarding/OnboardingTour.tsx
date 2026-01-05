@@ -104,10 +104,10 @@ export function OnboardingTour({ onComplete, onSkip }: OnboardingTourProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <Card
         className={cn(
-          'relative mx-4 w-full max-w-md transform transition-all duration-300',
+          'relative mx-4 w-full max-w-md transform bg-card shadow-xl transition-all duration-300',
           isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         )}
       >
