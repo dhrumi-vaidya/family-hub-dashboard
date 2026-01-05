@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -9,6 +10,7 @@ import {
   FileText,
   ChevronLeft,
   Home,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/contexts/AppContext';
@@ -27,14 +29,36 @@ const navItems = [
 export function Sidebar() {
   const { mode, sidebarCollapsed, setSidebarCollapsed } = useApp();
   const location = useLocation();
-  const isCollapsed = mode === 'fast' ? sidebarCollapsed : false;
+
+  const [isDesktop, setIsDesktop] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return window.matchMedia('(min-width: 1024px)').matches;
+  });
+
+  useEffect(() => {
+    const mql = window.matchMedia('(min-width: 1024px)');
+    const onChange = () => setIsDesktop(mql.matches);
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
+
+  // Desktop: Simple mode is always expanded; Fast mode can collapse.
+  // Small screens: both modes use the collapsed state to open/close the drawer.
+  const isCollapsed = isDesktop ? (mode === 'fast' ? sidebarCollapsed : false) : sidebarCollapsed;
+  const showOverlay = !isDesktop && !isCollapsed;
+
+  // After navigating on small screens, close the drawer so the page is usable.
+  useEffect(() => {
+    if (!isDesktop) setSidebarCollapsed(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   return (
     <>
-      {/* Mobile Overlay */}
-      {!isCollapsed && (
+      {/* Mobile/Tablet Overlay */}
+      {showOverlay && (
         <div
-          className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-overlay/20 backdrop-blur-sm lg:hidden"
           onClick={() => setSidebarCollapsed(true)}
         />
       )}
@@ -63,12 +87,28 @@ export function Sidebar() {
               <Home className="h-5 w-5 text-primary-foreground" />
             </div>
           )}
-          {mode === 'fast' && !isCollapsed && (
+
+          {/* Close button on smaller screens so the sidebar never blocks content */}
+          {!isDesktop && !isCollapsed && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setSidebarCollapsed(true)}
+              className="ml-auto"
+              aria-label="Close sidebar"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+
+          {/* Collapse button (Fast Mode desktop) */}
+          {isDesktop && mode === 'fast' && !isCollapsed && (
             <Button
               variant="ghost"
               size="icon-sm"
               onClick={() => setSidebarCollapsed(true)}
               className="hidden lg:flex"
+              aria-label="Collapse sidebar"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -91,7 +131,7 @@ export function Sidebar() {
                   isCollapsed && 'justify-center px-2'
                 )}
                 onClick={() => {
-                  if (window.innerWidth < 1024) {
+                  if (!isDesktop) {
                     setSidebarCollapsed(true);
                   }
                 }}
