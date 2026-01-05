@@ -41,8 +41,11 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<UXMode>('simple');
   const [currentFamily, setCurrentFamily] = useState<Family>(defaultFamilies[0]);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    // On smaller screens we start with the sidebar closed so it doesn't block content.
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < 1024;
+  });
   // Onboarding state - check localStorage
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(() => {
     const stored = localStorage.getItem(ONBOARDING_KEY);

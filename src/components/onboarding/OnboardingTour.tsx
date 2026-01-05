@@ -104,8 +104,12 @@ export function OnboardingTour({ onComplete, onSkip }: OnboardingTourProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-overlay/50 backdrop-blur-sm"
+      onClick={onSkip}
+    >
       <Card
+        onClick={(e) => e.stopPropagation()}
         className={cn(
           'relative mx-4 w-full max-w-md transform bg-card shadow-xl transition-all duration-300',
           isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'

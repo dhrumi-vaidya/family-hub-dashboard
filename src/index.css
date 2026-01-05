@@ -23,6 +23,7 @@
     /* Warm Cream Background */
     --background: 0 0% 96%;
     --foreground: 0 0% 9%;
+    --overlay: 0 0% 0%;
 
     /* Cards - Pure white for contrast against cream */
     --card: 0 0% 98%;
@@ -110,6 +111,7 @@
   .dark {
     --background: 0 0% 9%;
     --foreground: 0 0% 98%;
+    --overlay: 0 0% 0%;
 
     --card: 0 0% 14%;
     --card-foreground: 0 0% 98%;
