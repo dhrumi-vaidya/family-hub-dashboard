@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { Plus, Clock, CheckCircle2, AlertTriangle, RotateCcw, ArrowRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/contexts/AppContext';
 import { Hint } from '@/components/onboarding/Hint';
+import { CreateTaskModal } from '@/components/modals/CreateTaskModal';
 import { cn } from '@/lib/utils';
 
 const tasks = [
@@ -53,6 +55,7 @@ const statusConfig = {
 
 export default function Responsibilities() {
   const { mode } = useApp();
+  const [createTaskOpen, setCreateTaskOpen] = useState(false);
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -64,7 +67,7 @@ export default function Responsibilities() {
             Assign and track family tasks and duties.
           </p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => setCreateTaskOpen(true)}>
           <Plus className="h-4 w-4" />
           Create Task
         </Button>
@@ -148,6 +151,8 @@ export default function Responsibilities() {
           );
         })}
       </div>
+
+      <CreateTaskModal open={createTaskOpen} onOpenChange={setCreateTaskOpen} />
     </div>
   );
 }

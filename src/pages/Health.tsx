@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import { useApp } from '@/contexts/AppContext';
 import { Hint } from '@/components/onboarding/Hint';
+import { UploadHealthRecordModal } from '@/components/modals/UploadHealthRecordModal';
 import { cn } from '@/lib/utils';
 
 const healthRecords = [
@@ -54,6 +55,7 @@ const members = ['All Members', 'Anita Sharma', 'Rajesh Sharma', 'Vikram Sharma'
 export default function Health() {
   const { mode } = useApp();
   const [selectedMember, setSelectedMember] = useState('All Members');
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   const filteredRecords = selectedMember === 'All Members'
     ? healthRecords
@@ -69,7 +71,7 @@ export default function Health() {
             Securely store and access family health documents.
           </p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => setUploadOpen(true)}>
           <Upload className="h-4 w-4" />
           Upload Record
         </Button>
@@ -166,6 +168,8 @@ export default function Health() {
           </CardContent>
         </Card>
       )}
+
+      <UploadHealthRecordModal open={uploadOpen} onOpenChange={setUploadOpen} />
     </div>
   );
 }

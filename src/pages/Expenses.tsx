@@ -9,6 +9,7 @@ import { useApp } from '@/contexts/AppContext';
 import { Hint } from '@/components/onboarding/Hint';
 import { ExpenseChart } from '@/components/dashboard/ExpenseChart';
 import { BudgetChart } from '@/components/dashboard/BudgetChart';
+import { AddExpenseModal } from '@/components/modals/AddExpenseModal';
 import { cn } from '@/lib/utils';
 
 const familyCategories = [
@@ -53,6 +54,7 @@ export default function Expenses() {
   const [view, setView] = useState<'family' | 'personal'>('family');
   const [familyBudget, setFamilyBudget] = useState('60000');
   const [personalBudget, setPersonalBudget] = useState('20000');
+  const [addExpenseOpen, setAddExpenseOpen] = useState(false);
 
   const categories = view === 'family' ? familyCategories : personalCategories;
   const insights = view === 'family' ? familyInsights : personalInsights;
@@ -81,7 +83,7 @@ export default function Expenses() {
               <TabsTrigger value="personal">Personal</TabsTrigger>
             </TabsList>
           </Tabs>
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={() => setAddExpenseOpen(true)}>
             <Plus className="h-4 w-4" />
             Add Expense
           </Button>
@@ -211,6 +213,12 @@ export default function Expenses() {
           </CardContent>
         </Card>
       </div>
+
+      <AddExpenseModal
+        open={addExpenseOpen}
+        onOpenChange={setAddExpenseOpen}
+        type={view}
+      />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useApp } from '@/contexts/AppContext';
 import { Hint } from '@/components/onboarding/Hint';
+import { AddMemberModal } from '@/components/modals/AddMemberModal';
 import { cn } from '@/lib/utils';
 
 const members = [
@@ -64,6 +65,7 @@ const permissionIcons = {
 
 export default function Members() {
   const { mode } = useApp();
+  const [addMemberOpen, setAddMemberOpen] = useState(false);
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -75,7 +77,7 @@ export default function Members() {
             Manage members and their access permissions.
           </p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => setAddMemberOpen(true)}>
           <Plus className="h-4 w-4" />
           Add Member
         </Button>
@@ -162,6 +164,8 @@ export default function Members() {
           </Card>
         ))}
       </div>
+
+      <AddMemberModal open={addMemberOpen} onOpenChange={setAddMemberOpen} />
     </div>
   );
 }
