@@ -11,6 +11,7 @@ import Health from "./pages/Health";
 import Responsibilities from "./pages/Responsibilities";
 import Members from "./pages/Members";
 import Settings from "./pages/Settings";
+import Profile from "./pages/Profile";
 import AuditLogs from "./pages/AuditLogs";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +32,7 @@ const App = () => (
               <Route path="/responsibilities" element={<Responsibilities />} />
               <Route path="/members" element={<Members />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/audit-logs" element={<AuditLogs />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

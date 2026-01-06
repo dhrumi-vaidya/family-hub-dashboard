@@ -4,12 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useApp } from '@/contexts/AppContext';
 import { Hint } from '@/components/onboarding/Hint';
+import { ExpenseChart } from '@/components/dashboard/ExpenseChart';
+import { BudgetChart } from '@/components/dashboard/BudgetChart';
 import { cn } from '@/lib/utils';
 
-const categories = [
+const familyCategories = [
   { name: 'Groceries', amount: 18000, budget: 20000, color: 'bg-primary' },
   { name: 'Utilities', amount: 12000, budget: 15000, color: 'bg-accent' },
   { name: 'Healthcare', amount: 8000, budget: 10000, color: 'bg-destructive' },
@@ -17,7 +19,14 @@ const categories = [
   { name: 'Transport', amount: 2000, budget: 5000, color: 'bg-success' },
 ];
 
-const insights = [
+const personalCategories = [
+  { name: 'Personal', amount: 5000, budget: 8000, color: 'bg-primary' },
+  { name: 'Subscriptions', amount: 1500, budget: 2000, color: 'bg-accent' },
+  { name: 'Food (Outside)', amount: 3000, budget: 4000, color: 'bg-warning' },
+  { name: 'Shopping', amount: 2500, budget: 5000, color: 'bg-success' },
+];
+
+const familyInsights = [
   {
     type: 'warning',
     message: 'Food expenses crossed 30% of your monthly budget.',
@@ -28,11 +37,30 @@ const insights = [
   },
 ];
 
+const personalInsights = [
+  {
+    type: 'info',
+    message: 'You spent 20% less on subscriptions this month.',
+  },
+  {
+    type: 'warning',
+    message: 'Outside food expenses are trending up.',
+  },
+];
+
 export default function Expenses() {
   const { mode } = useApp();
-  const [budget, setBudget] = useState('60000');
+  const [view, setView] = useState<'family' | 'personal'>('family');
+  const [familyBudget, setFamilyBudget] = useState('60000');
+  const [personalBudget, setPersonalBudget] = useState('20000');
+
+  const categories = view === 'family' ? familyCategories : personalCategories;
+  const insights = view === 'family' ? familyInsights : personalInsights;
+  const budget = view === 'family' ? familyBudget : personalBudget;
+  const setBudget = view === 'family' ? setFamilyBudget : setPersonalBudget;
+
   const totalSpent = categories.reduce((sum, cat) => sum + cat.amount, 0);
-  const totalBudget = parseInt(budget) || 60000;
+  const totalBudget = parseInt(budget) || (view === 'family' ? 60000 : 20000);
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -41,19 +69,39 @@ export default function Expenses() {
         <div>
           <h1 className="text-heading-lg text-foreground">Expenses</h1>
           <p className="mt-1 text-body text-muted-foreground">
-            Track and manage your family's monthly expenses.
+            {view === 'family'
+              ? "Track and manage your family's monthly expenses."
+              : 'Track your personal monthly expenses.'}
           </p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Expense
-        </Button>
+        <div className="flex items-center gap-3">
+          <Tabs value={view} onValueChange={(v) => setView(v as 'family' | 'personal')}>
+            <TabsList>
+              <TabsTrigger value="family">Family</TabsTrigger>
+              <TabsTrigger value="personal">Personal</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            Add Expense
+          </Button>
+        </div>
       </div>
       
       <Hint id="expenses-intro">
-        Start by setting your monthly budget. Then track expenses by category. 
-        We'll show you insights when you're close to your limits.
+        {view === 'family'
+          ? "Start by setting your family's monthly budget. Track expenses by category and we'll show you insights."
+          : 'Set your personal budget to track your own spending separately from family expenses.'}
       </Hint>
+
+      {/* Charts */}
+      <div className={cn(
+        'grid gap-4 lg:gap-6',
+        mode === 'simple' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2'
+      )}>
+        <ExpenseChart personal={view === 'personal'} />
+        <BudgetChart personal={view === 'personal'} />
+      </div>
 
       <div className={cn(
         'grid gap-6',
@@ -64,7 +112,7 @@ export default function Expenses() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary" />
-              Monthly Budget
+              {view === 'family' ? 'Family Budget' : 'Personal Budget'}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">

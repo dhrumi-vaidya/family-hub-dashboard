@@ -23,6 +23,7 @@ const navItems = [
   { icon: CheckSquare, label: 'Responsibilities', path: '/responsibilities' },
   { icon: Users, label: 'Members', path: '/members' },
   { icon: Settings, label: 'Settings', path: '/settings' },
+  { icon: Users, label: 'Profile', path: '/profile' },
   { icon: FileText, label: 'Audit Logs', path: '/audit-logs' },
 ];
 
