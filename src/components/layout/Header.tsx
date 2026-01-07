@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Switch } from '@/components/ui/switch';
 import { useApp } from '@/contexts/AppContext';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export function Header() {
   const { mode, setMode, currentFamily, setCurrentFamily, families, sidebarCollapsed, setSidebarCollapsed } = useApp();
@@ -57,8 +58,11 @@ export function Header() {
 
         {/* Right Section */}
         <div className="flex items-center gap-3">
+          {/* Theme Toggle */}
+          <ThemeToggle />
+
           {/* Mode Toggle */}
-          <div className="hidden items-center gap-2 rounded-lg bg-muted px-3 py-1.5 sm:flex">
+          <div className="hidden items-center gap-2 rounded-lg bg-muted/50 px-3 py-1.5 sm:flex">
             <span className={`text-sm ${mode === 'simple' ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>
               Simple
             </span>
