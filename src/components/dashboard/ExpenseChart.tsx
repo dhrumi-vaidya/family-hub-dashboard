@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, Sector } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, RotateCcw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const data = [
   { name: 'Groceries', value: 18000, color: 'hsl(var(--chart-1))' },
@@ -63,6 +64,7 @@ export function ExpenseChart({ personal = false }: ExpenseChartProps) {
       if (next.has(name)) {
         next.delete(name);
       } else {
+        // Allow hiding all but one category
         if (next.size < chartData.length - 1) {
           next.add(name);
         }
@@ -71,12 +73,32 @@ export function ExpenseChart({ personal = false }: ExpenseChartProps) {
     });
   };
 
+  const handleReset = () => {
+    setHiddenCategories(new Set());
+  };
+
+  // Create legend payload with ALL categories (including hidden ones)
+  const legendPayload = chartData.map((item) => ({
+    value: item.name,
+    type: 'circle' as const,
+    color: hiddenCategories.has(item.name) ? 'hsl(var(--muted))' : item.color,
+    id: item.name,
+  }));
+
   return (
     <Card className="animate-fade-in opacity-0" style={{ animationDelay: '0.15s' }}>
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <TrendingUp className="h-4 w-4 text-primary" />
-          {personal ? 'Your Spending' : 'Family Spending'}
+        <CardTitle className="flex items-center justify-between text-base">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-primary" />
+            {personal ? 'Your Spending' : 'Family Spending'}
+          </div>
+          {hiddenCategories.size > 0 && (
+            <Button variant="ghost" size="sm" onClick={handleReset} className="h-7 gap-1 text-xs">
+              <RotateCcw className="h-3 w-3" />
+              Reset
+            </Button>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -114,6 +136,7 @@ export function ExpenseChart({ personal = false }: ExpenseChartProps) {
               iconType="circle"
               iconSize={8}
               wrapperStyle={{ fontSize: '12px', cursor: 'pointer' }}
+              payload={legendPayload}
               onClick={handleLegendClick}
               formatter={(value) => (
                 <span
