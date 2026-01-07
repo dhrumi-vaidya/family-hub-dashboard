@@ -9,6 +9,7 @@ import { useApp } from '@/contexts/AppContext';
 import { Hint } from '@/components/onboarding/Hint';
 import { ExpenseChart } from '@/components/dashboard/ExpenseChart';
 import { BudgetChart } from '@/components/dashboard/BudgetChart';
+import { DailyExpenseTracker } from '@/components/dashboard/DailyExpenseTracker';
 import { AddExpenseModal } from '@/components/modals/AddExpenseModal';
 import { cn } from '@/lib/utils';
 
@@ -104,6 +105,9 @@ export default function Expenses() {
         <ExpenseChart personal={view === 'personal'} />
         <BudgetChart personal={view === 'personal'} />
       </div>
+
+      {/* Daily Expense Tracker - Only in Personal View */}
+      {view === 'personal' && <DailyExpenseTracker />}
 
       <div className={cn(
         'grid gap-6',

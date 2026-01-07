@@ -1,4 +1,5 @@
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from 'recharts';
+import { useState } from 'react';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell, Legend, ReferenceLine } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Wallet } from 'lucide-react';
 
@@ -16,6 +17,9 @@ interface BudgetChartProps {
 }
 
 export function BudgetChart({ personal = false }: BudgetChartProps) {
+  const [showSpent, setShowSpent] = useState(true);
+  const [showBudget, setShowBudget] = useState(true);
+
   const chartData = personal
     ? data.map((d) => ({
         ...d,
@@ -23,6 +27,17 @@ export function BudgetChart({ personal = false }: BudgetChartProps) {
         budget: Math.round(d.budget * 0.35),
       }))
     : data;
+
+  const budgetLine = chartData[0]?.budget || 0;
+
+  const handleLegendClick = (entry: any) => {
+    const key = entry.dataKey || entry.value;
+    if (key === 'spent' || key === 'Spent') {
+      setShowSpent((prev) => prev || !showBudget ? !prev : prev);
+    } else if (key === 'budget' || key === 'Budget Line') {
+      setShowBudget((prev) => prev || !showSpent ? !prev : prev);
+    }
+  };
 
   return (
     <Card className="animate-fade-in opacity-0" style={{ animationDelay: '0.2s' }}>
@@ -35,33 +50,97 @@ export function BudgetChart({ personal = false }: BudgetChartProps) {
       <CardContent>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-            <XAxis dataKey="name" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
+            <XAxis 
+              dataKey="name" 
+              tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }} 
+              tickLine={false} 
+              axisLine={false} 
+            />
             <YAxis
-              tick={{ fontSize: 10 }}
+              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
               tickLine={false}
               axisLine={false}
               tickFormatter={(v) => `₹${v / 1000}k`}
             />
             <Tooltip
-              formatter={(value: number) => `₹${value.toLocaleString()}`}
+              formatter={(value: number, name: string) => [
+                `₹${value.toLocaleString()}`,
+                name === 'spent' ? 'Spent' : 'Budget',
+              ]}
               contentStyle={{
                 backgroundColor: 'hsl(var(--card))',
                 borderColor: 'hsl(var(--border))',
                 borderRadius: '0.5rem',
+                color: 'hsl(var(--foreground))',
               }}
+              labelStyle={{ color: 'hsl(var(--foreground))' }}
             />
-            <Bar dataKey="spent" radius={[4, 4, 0, 0]}>
-              {chartData.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={
-                    entry.spent > entry.budget
-                      ? 'hsl(var(--destructive))'
-                      : 'hsl(var(--primary))'
-                  }
-                />
-              ))}
-            </Bar>
+            {showBudget && (
+              <ReferenceLine
+                y={budgetLine}
+                stroke="hsl(var(--muted-foreground))"
+                strokeDasharray="5 5"
+                label={{
+                  value: 'Budget',
+                  position: 'right',
+                  fill: 'hsl(var(--muted-foreground))',
+                  fontSize: 10,
+                }}
+              />
+            )}
+            {showSpent && (
+              <Bar dataKey="spent" radius={[4, 4, 0, 0]} name="Spent">
+                {chartData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={
+                      entry.spent > entry.budget
+                        ? 'hsl(var(--destructive))'
+                        : 'hsl(var(--primary))'
+                    }
+                  />
+                ))}
+              </Bar>
+            )}
+            <Legend
+              verticalAlign="bottom"
+              iconType="square"
+              iconSize={10}
+              wrapperStyle={{ fontSize: '12px', cursor: 'pointer' }}
+              onClick={handleLegendClick}
+              payload={[
+                {
+                  value: 'Spent',
+                  type: 'square',
+                  color: showSpent ? 'hsl(var(--primary))' : 'hsl(var(--muted))',
+                  dataKey: 'spent',
+                },
+                {
+                  value: 'Budget Line',
+                  type: 'line',
+                  color: showBudget ? 'hsl(var(--muted-foreground))' : 'hsl(var(--muted))',
+                  dataKey: 'budget',
+                },
+              ]}
+              formatter={(value, entry: any) => (
+                <span
+                  style={{
+                    color:
+                      (entry.dataKey === 'spent' && !showSpent) ||
+                      (entry.dataKey === 'budget' && !showBudget)
+                        ? 'hsl(var(--muted))'
+                        : 'hsl(var(--foreground))',
+                    textDecoration:
+                      (entry.dataKey === 'spent' && !showSpent) ||
+                      (entry.dataKey === 'budget' && !showBudget)
+                        ? 'line-through'
+                        : 'none',
+                  }}
+                >
+                  {value}
+                </span>
+              )}
+            />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
