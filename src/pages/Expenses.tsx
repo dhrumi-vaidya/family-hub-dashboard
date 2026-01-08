@@ -1,228 +1,258 @@
 import { useState } from 'react';
-import { Plus, Filter, TrendingUp, AlertCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
 import { useApp } from '@/contexts/AppContext';
-import { Hint } from '@/components/onboarding/Hint';
-import { ExpenseChart } from '@/components/dashboard/ExpenseChart';
-import { BudgetChart } from '@/components/dashboard/BudgetChart';
-import { DailyExpenseTracker } from '@/components/dashboard/DailyExpenseTracker';
-import { AddExpenseModal } from '@/components/modals/AddExpenseModal';
+import { QuickAddExpense } from '@/components/expenses/QuickAddExpense';
+import { GuidedAddExpense } from '@/components/expenses/GuidedAddExpense';
+import { ExpenseTimeline } from '@/components/expenses/ExpenseTimeline';
+import { BudgetCard } from '@/components/expenses/BudgetCard';
+import { InsightsCard } from '@/components/expenses/InsightsCard';
+import { ExpenseFilters, FilterState } from '@/components/expenses/ExpenseFilters';
+import { EmptyExpenses } from '@/components/expenses/EmptyExpenses';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 
-const familyCategories = [
-  { name: 'Groceries', amount: 18000, budget: 20000, color: 'bg-primary' },
-  { name: 'Utilities', amount: 12000, budget: 15000, color: 'bg-accent' },
-  { name: 'Healthcare', amount: 8000, budget: 10000, color: 'bg-destructive' },
-  { name: 'Education', amount: 5000, budget: 8000, color: 'bg-warning' },
-  { name: 'Transport', amount: 2000, budget: 5000, color: 'bg-success' },
-];
+interface Expense {
+  id: string;
+  amount: number;
+  category: string;
+  note?: string;
+  date: Date;
+  type: 'family' | 'personal';
+}
 
-const personalCategories = [
-  { name: 'Personal', amount: 5000, budget: 8000, color: 'bg-primary' },
-  { name: 'Subscriptions', amount: 1500, budget: 2000, color: 'bg-accent' },
-  { name: 'Food (Outside)', amount: 3000, budget: 4000, color: 'bg-warning' },
-  { name: 'Shopping', amount: 2500, budget: 5000, color: 'bg-success' },
+// Sample data
+const initialExpenses: Expense[] = [
+  { id: '1', amount: 2500, category: 'Food', note: 'Weekly groceries', date: new Date(), type: 'family' },
+  { id: '2', amount: 150, category: 'Food', note: 'Lunch at office', date: new Date(), type: 'personal' },
+  { id: '3', amount: 800, category: 'Travel', note: 'Cab to airport', date: subDays(new Date(), 1), type: 'family' },
+  { id: '4', amount: 3500, category: 'Utilities', note: 'Electricity bill', date: subDays(new Date(), 2), type: 'family' },
+  { id: '5', amount: 500, category: 'Medical', note: 'Medicines', date: subDays(new Date(), 3), type: 'personal' },
 ];
 
 const familyInsights = [
-  {
-    type: 'warning',
-    message: 'Food expenses crossed 30% of your monthly budget.',
-  },
-  {
-    type: 'info',
-    message: 'Utility bills are 15% lower than last month.',
-  },
+  { type: 'warning' as const, message: 'Food expenses crossed 30% of your budget.' },
+  { type: 'success' as const, message: 'Utility bills are 15% lower than last month.' },
+  { type: 'info' as const, message: 'Travel expenses increased this week.' },
 ];
 
 const personalInsights = [
-  {
-    type: 'info',
-    message: 'You spent 20% less on subscriptions this month.',
-  },
-  {
-    type: 'warning',
-    message: 'Outside food expenses are trending up.',
-  },
+  { type: 'success' as const, message: 'You spent 20% less on subscriptions this month.' },
+  { type: 'warning' as const, message: 'Daily spending is higher than last month.' },
+];
+
+const months = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
 export default function Expenses() {
   const { mode } = useApp();
-  const [view, setView] = useState<'family' | 'personal'>('family');
-  const [familyBudget, setFamilyBudget] = useState('60000');
-  const [personalBudget, setPersonalBudget] = useState('20000');
-  const [addExpenseOpen, setAddExpenseOpen] = useState(false);
+  const isSimpleMode = mode === 'simple';
 
-  const categories = view === 'family' ? familyCategories : personalCategories;
-  const insights = view === 'family' ? familyInsights : personalInsights;
-  const budget = view === 'family' ? familyBudget : personalBudget;
-  const setBudget = view === 'family' ? setFamilyBudget : setPersonalBudget;
+  const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear] = useState(new Date().getFullYear());
+  const [showGuidedAdd, setShowGuidedAdd] = useState(false);
+  const [budgetDialogOpen, setBudgetDialogOpen] = useState(false);
+  const [budget, setBudget] = useState(20000);
+  const [tempBudget, setTempBudget] = useState('20000');
+  const [filters, setFilters] = useState<FilterState>({ category: 'All', member: 'All', type: 'all' });
 
-  const totalSpent = categories.reduce((sum, cat) => sum + cat.amount, 0);
-  const totalBudget = parseInt(budget) || (view === 'family' ? 60000 : 20000);
+  // Filter expenses based on current filters and month
+  const filteredExpenses = expenses.filter((expense) => {
+    const expenseMonth = expense.date.getMonth();
+    if (expenseMonth !== selectedMonth) return false;
+    if (filters.category !== 'All' && expense.category !== filters.category) return false;
+    if (filters.type !== 'all' && expense.type !== filters.type) return false;
+    return true;
+  });
+
+  const totalSpent = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
+  const currentInsights = filters.type === 'personal' ? personalInsights : familyInsights;
+
+  const handleAddExpense = (expense: { amount: number; category: string; note: string; date: Date }) => {
+    const newExpense: Expense = {
+      id: Date.now().toString(),
+      ...expense,
+      type: filters.type === 'personal' ? 'personal' : 'family',
+    };
+    setExpenses([newExpense, ...expenses]);
+  };
+
+  const handleDeleteExpense = (id: string) => {
+    if (isSimpleMode) {
+      // In simple mode, show confirmation
+      if (window.confirm('Are you sure you want to delete this expense?')) {
+        setExpenses(expenses.filter((e) => e.id !== id));
+        toast.success('Expense deleted');
+      }
+    } else {
+      setExpenses(expenses.filter((e) => e.id !== id));
+      toast.success('Expense deleted');
+    }
+  };
+
+  const handleEditExpense = (id: string) => {
+    toast.info('Edit functionality coming soon');
+  };
+
+  const handleSaveBudget = () => {
+    const parsedBudget = parseInt(tempBudget);
+    if (isNaN(parsedBudget) || parsedBudget <= 0) {
+      toast.error('Please enter a valid amount');
+      return;
+    }
+    setBudget(parsedBudget);
+    setBudgetDialogOpen(false);
+    toast.success('Budget updated successfully');
+  };
+
+  const goToPreviousMonth = () => {
+    setSelectedMonth((prev) => (prev === 0 ? 11 : prev - 1));
+  };
+
+  const goToNextMonth = () => {
+    setSelectedMonth((prev) => (prev === 11 ? 0 : prev + 1));
+  };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
-      {/* Page Header */}
+    <div className="mx-auto max-w-6xl space-y-6">
+      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-heading-lg text-foreground">Expenses</h1>
           <p className="mt-1 text-body text-muted-foreground">
-            {view === 'family'
-              ? "Track and manage your family's monthly expenses."
-              : 'Track your personal monthly expenses.'}
+            Understand spending, without effort.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Tabs value={view} onValueChange={(v) => setView(v as 'family' | 'personal')}>
-            <TabsList>
-              <TabsTrigger value="family">Family</TabsTrigger>
-              <TabsTrigger value="personal">Personal</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <Button className="gap-2" onClick={() => setAddExpenseOpen(true)}>
-            <Plus className="h-4 w-4" />
-            Add Expense
-          </Button>
+          {/* Month Selector */}
+          <div className="flex items-center gap-1 rounded-lg border border-border bg-card px-2 py-1">
+            <Button variant="ghost" size="icon-sm" onClick={goToPreviousMonth}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="min-w-[100px] text-center text-sm font-medium">
+              {months[selectedMonth]} {selectedYear}
+            </span>
+            <Button 
+              variant="ghost" 
+              size="icon-sm" 
+              onClick={goToNextMonth}
+              disabled={selectedMonth === new Date().getMonth()}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Add Expense Button (Fast Mode only) */}
+          {!isSimpleMode && (
+            <Button className="gap-2" onClick={() => setShowGuidedAdd(true)}>
+              <Plus className="h-4 w-4" />
+              Add Expense
+            </Button>
+          )}
         </div>
       </div>
-      
-      <Hint id="expenses-intro">
-        {view === 'family'
-          ? "Start by setting your family's monthly budget. Track expenses by category and we'll show you insights."
-          : 'Set your personal budget to track your own spending separately from family expenses.'}
-      </Hint>
 
-      {/* Charts */}
-      <div className={cn(
-        'grid gap-4 lg:gap-6',
-        mode === 'simple' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2'
-      )}>
-        <ExpenseChart personal={view === 'personal'} />
-        <BudgetChart personal={view === 'personal'} />
-      </div>
+      {/* Quick Add (Fast Mode) or Guided Add (Simple Mode when triggered) */}
+      {isSimpleMode ? (
+        showGuidedAdd ? (
+          <GuidedAddExpense
+            onAdd={handleAddExpense}
+            onCancel={() => setShowGuidedAdd(false)}
+          />
+        ) : (
+          <Button
+            variant="soft"
+            size="lg"
+            className="w-full gap-2 text-base"
+            onClick={() => setShowGuidedAdd(true)}
+          >
+            <Plus className="h-5 w-5" />
+            Add Expense
+          </Button>
+        )
+      ) : (
+        !showGuidedAdd && <QuickAddExpense onAdd={handleAddExpense} />
+      )}
 
-      {/* Daily Expense Tracker - Only in Personal View */}
-      {view === 'personal' && <DailyExpenseTracker />}
+      {/* Filters */}
+      <ExpenseFilters
+        onFilterChange={setFilters}
+        compact={!isSimpleMode}
+      />
 
+      {/* Main Content Grid */}
       <div className={cn(
         'grid gap-6',
-        mode === 'simple' ? 'lg:grid-cols-2' : 'lg:grid-cols-3'
+        isSimpleMode ? 'lg:grid-cols-1' : 'lg:grid-cols-3'
       )}>
-        {/* Budget Setup */}
-        <Card className="animate-fade-in opacity-0" style={{ animationDelay: '0.1s' }}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              {view === 'family' ? 'Family Budget' : 'Personal Budget'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-foreground">
-                Budget Amount (₹)
-              </label>
-              <Input
-                type="number"
-                value={budget}
-                onChange={(e) => setBudget(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Spent</span>
-                <span className="font-medium">₹{totalSpent.toLocaleString()} / ₹{totalBudget.toLocaleString()}</span>
-              </div>
-              <Progress value={(totalSpent / totalBudget) * 100} className="mt-2 h-3" />
-            </div>
-            {mode === 'simple' && (
-              <Button variant="soft" className="w-full">
-                Save Budget
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+        {/* Expense Timeline */}
+        <div className={cn(isSimpleMode ? '' : 'lg:col-span-2')}>
+          {filteredExpenses.length === 0 ? (
+            <EmptyExpenses onAddExpense={() => setShowGuidedAdd(true)} />
+          ) : (
+            <ExpenseTimeline
+              expenses={filteredExpenses}
+              onEdit={handleEditExpense}
+              onDelete={handleDeleteExpense}
+              compact={!isSimpleMode}
+            />
+          )}
+        </div>
 
-        {/* Category Breakdown */}
-        <Card className={cn(
-          'animate-fade-in opacity-0',
-          mode === 'simple' ? '' : 'lg:col-span-2'
-        )} style={{ animationDelay: '0.2s' }}>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Category Breakdown</CardTitle>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Filter className="h-4 w-4" />
-              Filter
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {categories.map((cat) => {
-                const percent = Math.round((cat.amount / cat.budget) * 100);
-                return (
-                  <div key={cat.name} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className={cn('h-3 w-3 rounded-full', cat.color)} />
-                        <span className="font-medium">{cat.name}</span>
-                      </div>
-                      <div className="text-right">
-                        <span className="font-medium">₹{cat.amount.toLocaleString()}</span>
-                        <span className="text-muted-foreground"> / ₹{cat.budget.toLocaleString()}</span>
-                      </div>
-                    </div>
-                    <Progress value={percent} className="h-2" />
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Insights */}
-        <Card className={cn(
-          'animate-fade-in opacity-0',
-          mode === 'simple' ? 'lg:col-span-2' : ''
-        )} style={{ animationDelay: '0.3s' }}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-accent" />
-              Insights
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {insights.map((insight, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    'rounded-lg p-3',
-                    insight.type === 'warning' ? 'bg-warning-light' : 'bg-accent-light'
-                  )}
-                >
-                  <p className="text-sm font-medium text-foreground">{insight.message}</p>
-                </div>
-              ))}
-            </div>
-            {mode === 'simple' && (
-              <p className="helper-text mt-4">
-                These insights are based on your spending patterns and budget limits.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+        {/* Sidebar */}
+        <div className={cn('space-y-6', isSimpleMode && 'grid gap-6 sm:grid-cols-2 lg:grid-cols-1 space-y-0')}>
+          <BudgetCard
+            budget={budget}
+            spent={totalSpent}
+            onEdit={() => {
+              setTempBudget(budget.toString());
+              setBudgetDialogOpen(true);
+            }}
+            compact={!isSimpleMode}
+          />
+          <InsightsCard
+            insights={currentInsights}
+            showHelper={isSimpleMode}
+            compact={!isSimpleMode}
+          />
+        </div>
       </div>
 
-      <AddExpenseModal
-        open={addExpenseOpen}
-        onOpenChange={setAddExpenseOpen}
-        type={view}
-      />
+      {/* Budget Edit Dialog */}
+      <Dialog open={budgetDialogOpen} onOpenChange={setBudgetDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Edit Monthly Budget</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="budget">Budget Amount (₹)</Label>
+              <Input
+                id="budget"
+                type="number"
+                value={tempBudget}
+                onChange={(e) => setTempBudget(e.target.value)}
+                placeholder="Enter budget amount"
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setBudgetDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveBudget}>
+                Save Budget
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
