@@ -9,6 +9,7 @@ interface ExpenseFiltersProps {
   onFilterChange: (filters: FilterState) => void;
   members?: { id: string; name: string }[];
   compact?: boolean;
+  hideTypeFilter?: boolean;
 }
 
 export interface FilterState {
@@ -19,7 +20,7 @@ export interface FilterState {
 
 const categories = ['All', 'Food', 'Travel', 'Medical', 'Utilities', 'Other'];
 
-export function ExpenseFilters({ onFilterChange, members = [], compact = false }: ExpenseFiltersProps) {
+export function ExpenseFilters({ onFilterChange, members = [], compact = false, hideTypeFilter = false }: ExpenseFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     category: 'All',
@@ -99,19 +100,21 @@ export function ExpenseFilters({ onFilterChange, members = [], compact = false }
             </div>
           )}
 
-          <div className="space-y-1.5">
-            <label className="text-sm text-muted-foreground">Type</label>
-            <Select value={filters.type} onValueChange={(v) => handleFilterChange('type', v as FilterState['type'])}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="family">Family</SelectItem>
-                <SelectItem value="personal">Personal</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {!hideTypeFilter && (
+            <div className="space-y-1.5">
+              <label className="text-sm text-muted-foreground">Type</label>
+              <Select value={filters.type} onValueChange={(v) => handleFilterChange('type', v as FilterState['type'])}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="family">Family</SelectItem>
+                  <SelectItem value="personal">Personal</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {hasActiveFilters && (
             <div className="flex items-end">

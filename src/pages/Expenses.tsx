@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useApp } from '@/contexts/AppContext';
 import { QuickAddExpense } from '@/components/expenses/QuickAddExpense';
 import { GuidedAddExpense } from '@/components/expenses/GuidedAddExpense';
@@ -12,9 +13,11 @@ import { BudgetCard } from '@/components/expenses/BudgetCard';
 import { InsightsCard } from '@/components/expenses/InsightsCard';
 import { ExpenseFilters, FilterState } from '@/components/expenses/ExpenseFilters';
 import { EmptyExpenses } from '@/components/expenses/EmptyExpenses';
+import { ExpenseChart } from '@/components/dashboard/ExpenseChart';
+import { BudgetChart } from '@/components/dashboard/BudgetChart';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
+import { subDays } from 'date-fns';
 
 interface Expense {
   id: string;
@@ -54,39 +57,42 @@ export default function Expenses() {
   const { mode } = useApp();
   const isSimpleMode = mode === 'simple';
 
+  const [view, setView] = useState<'family' | 'personal'>('family');
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear] = useState(new Date().getFullYear());
   const [showGuidedAdd, setShowGuidedAdd] = useState(false);
   const [budgetDialogOpen, setBudgetDialogOpen] = useState(false);
-  const [budget, setBudget] = useState(20000);
+  const [familyBudget, setFamilyBudget] = useState(60000);
+  const [personalBudget, setPersonalBudget] = useState(20000);
   const [tempBudget, setTempBudget] = useState('20000');
   const [filters, setFilters] = useState<FilterState>({ category: 'All', member: 'All', type: 'all' });
 
-  // Filter expenses based on current filters and month
+  const currentBudget = view === 'personal' ? personalBudget : familyBudget;
+
+  // Filter expenses based on current view, filters and month
   const filteredExpenses = expenses.filter((expense) => {
     const expenseMonth = expense.date.getMonth();
     if (expenseMonth !== selectedMonth) return false;
+    if (expense.type !== view) return false;
     if (filters.category !== 'All' && expense.category !== filters.category) return false;
-    if (filters.type !== 'all' && expense.type !== filters.type) return false;
     return true;
   });
 
   const totalSpent = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
-  const currentInsights = filters.type === 'personal' ? personalInsights : familyInsights;
+  const currentInsights = view === 'personal' ? personalInsights : familyInsights;
 
   const handleAddExpense = (expense: { amount: number; category: string; note: string; date: Date }) => {
     const newExpense: Expense = {
       id: Date.now().toString(),
       ...expense,
-      type: filters.type === 'personal' ? 'personal' : 'family',
+      type: view,
     };
     setExpenses([newExpense, ...expenses]);
   };
 
   const handleDeleteExpense = (id: string) => {
     if (isSimpleMode) {
-      // In simple mode, show confirmation
       if (window.confirm('Are you sure you want to delete this expense?')) {
         setExpenses(expenses.filter((e) => e.id !== id));
         toast.success('Expense deleted');
@@ -107,7 +113,11 @@ export default function Expenses() {
       toast.error('Please enter a valid amount');
       return;
     }
-    setBudget(parsedBudget);
+    if (view === 'personal') {
+      setPersonalBudget(parsedBudget);
+    } else {
+      setFamilyBudget(parsedBudget);
+    }
     setBudgetDialogOpen(false);
     toast.success('Budget updated successfully');
   };
@@ -159,77 +169,115 @@ export default function Expenses() {
         </div>
       </div>
 
-      {/* Quick Add (Fast Mode) or Guided Add (Simple Mode when triggered) */}
-      {isSimpleMode ? (
-        showGuidedAdd ? (
-          <GuidedAddExpense
-            onAdd={handleAddExpense}
-            onCancel={() => setShowGuidedAdd(false)}
-          />
-        ) : (
-          <Button
-            variant="soft"
-            size="lg"
-            className="w-full gap-2 text-base"
-            onClick={() => setShowGuidedAdd(true)}
-          >
-            <Plus className="h-5 w-5" />
-            Add Expense
-          </Button>
-        )
-      ) : (
-        !showGuidedAdd && <QuickAddExpense onAdd={handleAddExpense} />
-      )}
+      {/* Family / Personal Tabs */}
+      <Tabs value={view} onValueChange={(v) => setView(v as 'family' | 'personal')} className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="family">Family Budget</TabsTrigger>
+          <TabsTrigger value="personal">Personal Budget</TabsTrigger>
+        </TabsList>
 
-      {/* Filters */}
-      <ExpenseFilters
-        onFilterChange={setFilters}
-        compact={!isSimpleMode}
-      />
+        <TabsContent value="family" className="mt-6 space-y-6">
+          {/* Charts */}
+          <div className={cn('grid gap-6', isSimpleMode ? 'lg:grid-cols-1' : 'lg:grid-cols-2')}>
+            <ExpenseChart personal={false} />
+            <BudgetChart personal={false} />
+          </div>
 
-      {/* Main Content Grid */}
-      <div className={cn(
-        'grid gap-6',
-        isSimpleMode ? 'lg:grid-cols-1' : 'lg:grid-cols-3'
-      )}>
-        {/* Expense Timeline */}
-        <div className={cn(isSimpleMode ? '' : 'lg:col-span-2')}>
-          {filteredExpenses.length === 0 ? (
-            <EmptyExpenses onAddExpense={() => setShowGuidedAdd(true)} />
+          {/* Quick Add / Guided Add */}
+          {isSimpleMode ? (
+            showGuidedAdd ? (
+              <GuidedAddExpense onAdd={handleAddExpense} onCancel={() => setShowGuidedAdd(false)} />
+            ) : (
+              <Button variant="soft" size="lg" className="w-full gap-2 text-base" onClick={() => setShowGuidedAdd(true)}>
+                <Plus className="h-5 w-5" />
+                Add Family Expense
+              </Button>
+            )
           ) : (
-            <ExpenseTimeline
-              expenses={filteredExpenses}
-              onEdit={handleEditExpense}
-              onDelete={handleDeleteExpense}
-              compact={!isSimpleMode}
-            />
+            !showGuidedAdd && <QuickAddExpense onAdd={handleAddExpense} />
           )}
-        </div>
 
-        {/* Sidebar */}
-        <div className={cn('space-y-6', isSimpleMode && 'grid gap-6 sm:grid-cols-2 lg:grid-cols-1 space-y-0')}>
-          <BudgetCard
-            budget={budget}
-            spent={totalSpent}
-            onEdit={() => {
-              setTempBudget(budget.toString());
-              setBudgetDialogOpen(true);
-            }}
-            compact={!isSimpleMode}
-          />
-          <InsightsCard
-            insights={currentInsights}
-            showHelper={isSimpleMode}
-            compact={!isSimpleMode}
-          />
-        </div>
-      </div>
+          {/* Filters */}
+          <ExpenseFilters onFilterChange={setFilters} compact={!isSimpleMode} hideTypeFilter />
+
+          {/* Main Content Grid */}
+          <div className={cn('grid gap-6', isSimpleMode ? 'lg:grid-cols-1' : 'lg:grid-cols-3')}>
+            <div className={cn(isSimpleMode ? '' : 'lg:col-span-2')}>
+              {filteredExpenses.length === 0 ? (
+                <EmptyExpenses onAddExpense={() => setShowGuidedAdd(true)} />
+              ) : (
+                <ExpenseTimeline expenses={filteredExpenses} onEdit={handleEditExpense} onDelete={handleDeleteExpense} compact={!isSimpleMode} />
+              )}
+            </div>
+            <div className={cn('space-y-6', isSimpleMode && 'grid gap-6 sm:grid-cols-2 lg:grid-cols-1 space-y-0')}>
+              <BudgetCard
+                budget={familyBudget}
+                spent={totalSpent}
+                onEdit={() => {
+                  setTempBudget(familyBudget.toString());
+                  setBudgetDialogOpen(true);
+                }}
+                compact={!isSimpleMode}
+              />
+              <InsightsCard insights={familyInsights} showHelper={isSimpleMode} compact={!isSimpleMode} />
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="personal" className="mt-6 space-y-6">
+          {/* Charts */}
+          <div className={cn('grid gap-6', isSimpleMode ? 'lg:grid-cols-1' : 'lg:grid-cols-2')}>
+            <ExpenseChart personal={true} />
+            <BudgetChart personal={true} />
+          </div>
+
+          {/* Quick Add / Guided Add */}
+          {isSimpleMode ? (
+            showGuidedAdd ? (
+              <GuidedAddExpense onAdd={handleAddExpense} onCancel={() => setShowGuidedAdd(false)} />
+            ) : (
+              <Button variant="soft" size="lg" className="w-full gap-2 text-base" onClick={() => setShowGuidedAdd(true)}>
+                <Plus className="h-5 w-5" />
+                Add Personal Expense
+              </Button>
+            )
+          ) : (
+            !showGuidedAdd && <QuickAddExpense onAdd={handleAddExpense} />
+          )}
+
+          {/* Filters */}
+          <ExpenseFilters onFilterChange={setFilters} compact={!isSimpleMode} hideTypeFilter />
+
+          {/* Main Content Grid */}
+          <div className={cn('grid gap-6', isSimpleMode ? 'lg:grid-cols-1' : 'lg:grid-cols-3')}>
+            <div className={cn(isSimpleMode ? '' : 'lg:col-span-2')}>
+              {filteredExpenses.length === 0 ? (
+                <EmptyExpenses onAddExpense={() => setShowGuidedAdd(true)} />
+              ) : (
+                <ExpenseTimeline expenses={filteredExpenses} onEdit={handleEditExpense} onDelete={handleDeleteExpense} compact={!isSimpleMode} />
+              )}
+            </div>
+            <div className={cn('space-y-6', isSimpleMode && 'grid gap-6 sm:grid-cols-2 lg:grid-cols-1 space-y-0')}>
+              <BudgetCard
+                budget={personalBudget}
+                spent={totalSpent}
+                onEdit={() => {
+                  setTempBudget(personalBudget.toString());
+                  setBudgetDialogOpen(true);
+                }}
+                compact={!isSimpleMode}
+              />
+              <InsightsCard insights={personalInsights} showHelper={isSimpleMode} compact={!isSimpleMode} />
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Budget Edit Dialog */}
       <Dialog open={budgetDialogOpen} onOpenChange={setBudgetDialogOpen}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle>Edit Monthly Budget</DialogTitle>
+            <DialogTitle>Edit {view === 'personal' ? 'Personal' : 'Family'} Budget</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
