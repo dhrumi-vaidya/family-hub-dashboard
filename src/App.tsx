@@ -2,8 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppProvider } from "@/contexts/AppContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { Layout } from "@/components/layout/Layout";
 import Index from "./pages/Index";
@@ -15,32 +16,102 @@ import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import AuditLogs from "./pages/AuditLogs";
 import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
+import SelectFamily from "./pages/SelectFamily";
+import SelectMode from "./pages/SelectMode";
+import MemberDashboard from "./pages/MemberDashboard";
 
 const queryClient = new QueryClient();
+
+// Protected Route wrapper
+function ProtectedRoute({ children, adminOnly = false }: { children: React.ReactNode; adminOnly?: boolean }) {
+  const { isAuthenticated, user, selectedFamily } = useAuth();
+  const modeSelected = localStorage.getItem('kutumbos_mode_selected') === 'true';
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!selectedFamily && user && user.families.length > 1) {
+    return <Navigate to="/select-family" replace />;
+  }
+
+  if (!modeSelected) {
+    return <Navigate to="/select-mode" replace />;
+  }
+
+  if (adminOnly && user?.role !== 'admin') {
+    return <Navigate to="/member-dashboard" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+// Public Route wrapper (redirects if already logged in)
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, user } = useAuth();
+  const modeSelected = localStorage.getItem('kutumbos_mode_selected') === 'true';
+
+  if (isAuthenticated && modeSelected) {
+    return <Navigate to={user?.role === 'admin' ? '/' : '/member-dashboard'} replace />;
+  }
+
+  return <>{children}</>;
+}
+
+const AppRoutes = () => {
+  const { isAuthenticated, user } = useAuth();
+  const modeSelected = localStorage.getItem('kutumbos_mode_selected') === 'true';
+  const showLayout = isAuthenticated && modeSelected;
+
+  return (
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+      <Route path="/select-family" element={<SelectFamily />} />
+      <Route path="/select-mode" element={<SelectMode />} />
+
+      {/* Protected Routes with Layout */}
+      <Route
+        path="/*"
+        element={
+          showLayout ? (
+            <Layout>
+              <Routes>
+                <Route path="/" element={<ProtectedRoute adminOnly><Index /></ProtectedRoute>} />
+                <Route path="/member-dashboard" element={<ProtectedRoute><MemberDashboard /></ProtectedRoute>} />
+                <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
+                <Route path="/health" element={<ProtectedRoute><Health /></ProtectedRoute>} />
+                <Route path="/responsibilities" element={<ProtectedRoute><Responsibilities /></ProtectedRoute>} />
+                <Route path="/members" element={<ProtectedRoute adminOnly><Members /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="/audit-logs" element={<ProtectedRoute adminOnly><AuditLogs /></ProtectedRoute>} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Layout>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+    </Routes>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <TooltipProvider>
-        <AppProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/expenses" element={<Expenses />} />
-                <Route path="/health" element={<Health />} />
-                <Route path="/responsibilities" element={<Responsibilities />} />
-                <Route path="/members" element={<Members />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/audit-logs" element={<AuditLogs />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Layout>
-          </BrowserRouter>
-        </AppProvider>
+        <AuthProvider>
+          <AppProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </AppProvider>
+        </AuthProvider>
       </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>

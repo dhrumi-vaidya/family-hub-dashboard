@@ -169,109 +169,65 @@ export default function Expenses() {
         </div>
       </div>
 
-      {/* Family / Personal Tabs */}
-      <Tabs value={view} onValueChange={(v) => setView(v as 'family' | 'personal')} className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="family">Family Budget</TabsTrigger>
-          <TabsTrigger value="personal">Personal Budget</TabsTrigger>
-        </TabsList>
+      {/* Charts with Family/Personal Tabs in top-right */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-end">
+          <Tabs value={view} onValueChange={(v) => setView(v as 'family' | 'personal')}>
+            <TabsList>
+              <TabsTrigger value="family">Family</TabsTrigger>
+              <TabsTrigger value="personal">Personal</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+        
+        {/* Side by side charts */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <ExpenseChart personal={view === 'personal'} />
+          <BudgetChart personal={view === 'personal'} />
+        </div>
+      </div>
 
-        <TabsContent value="family" className="mt-6 space-y-6">
-          {/* Charts */}
-          <div className={cn('grid gap-6', isSimpleMode ? 'lg:grid-cols-1' : 'lg:grid-cols-2')}>
-            <ExpenseChart personal={false} />
-            <BudgetChart personal={false} />
-          </div>
-
-          {/* Quick Add / Guided Add */}
-          {isSimpleMode ? (
-            showGuidedAdd ? (
-              <GuidedAddExpense onAdd={handleAddExpense} onCancel={() => setShowGuidedAdd(false)} />
-            ) : (
-              <Button variant="soft" size="lg" className="w-full gap-2 text-base" onClick={() => setShowGuidedAdd(true)}>
-                <Plus className="h-5 w-5" />
-                Add Family Expense
-              </Button>
-            )
+      {/* Add Expense Section */}
+      <div className="space-y-6">
+        {isSimpleMode ? (
+          showGuidedAdd ? (
+            <GuidedAddExpense onAdd={handleAddExpense} onCancel={() => setShowGuidedAdd(false)} />
           ) : (
-            !showGuidedAdd && <QuickAddExpense onAdd={handleAddExpense} />
-          )}
+            <Button variant="soft" size="lg" className="w-full gap-2 text-base" onClick={() => setShowGuidedAdd(true)}>
+              <Plus className="h-5 w-5" />
+              Add {view === 'personal' ? 'Personal' : 'Family'} Expense
+            </Button>
+          )
+        ) : (
+          !showGuidedAdd && <QuickAddExpense onAdd={handleAddExpense} />
+        )}
+      </div>
 
-          {/* Filters */}
-          <ExpenseFilters onFilterChange={setFilters} compact={!isSimpleMode} hideTypeFilter />
+      {/* Filters */}
+      <ExpenseFilters onFilterChange={setFilters} compact={!isSimpleMode} hideTypeFilter />
 
-          {/* Main Content Grid */}
-          <div className={cn('grid gap-6', isSimpleMode ? 'lg:grid-cols-1' : 'lg:grid-cols-3')}>
-            <div className={cn(isSimpleMode ? '' : 'lg:col-span-2')}>
-              {filteredExpenses.length === 0 ? (
-                <EmptyExpenses onAddExpense={() => setShowGuidedAdd(true)} />
-              ) : (
-                <ExpenseTimeline expenses={filteredExpenses} onEdit={handleEditExpense} onDelete={handleDeleteExpense} compact={!isSimpleMode} />
-              )}
-            </div>
-            <div className={cn('space-y-6', isSimpleMode && 'grid gap-6 sm:grid-cols-2 lg:grid-cols-1 space-y-0')}>
-              <BudgetCard
-                budget={familyBudget}
-                spent={totalSpent}
-                onEdit={() => {
-                  setTempBudget(familyBudget.toString());
-                  setBudgetDialogOpen(true);
-                }}
-                compact={!isSimpleMode}
-              />
-              <InsightsCard insights={familyInsights} showHelper={isSimpleMode} compact={!isSimpleMode} />
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="personal" className="mt-6 space-y-6">
-          {/* Charts */}
-          <div className={cn('grid gap-6', isSimpleMode ? 'lg:grid-cols-1' : 'lg:grid-cols-2')}>
-            <ExpenseChart personal={true} />
-            <BudgetChart personal={true} />
-          </div>
-
-          {/* Quick Add / Guided Add */}
-          {isSimpleMode ? (
-            showGuidedAdd ? (
-              <GuidedAddExpense onAdd={handleAddExpense} onCancel={() => setShowGuidedAdd(false)} />
-            ) : (
-              <Button variant="soft" size="lg" className="w-full gap-2 text-base" onClick={() => setShowGuidedAdd(true)}>
-                <Plus className="h-5 w-5" />
-                Add Personal Expense
-              </Button>
-            )
+      {/* Main Content Grid */}
+      <div className={cn('grid gap-6', isSimpleMode ? 'lg:grid-cols-1' : 'lg:grid-cols-3')}>
+        <div className={cn(isSimpleMode ? '' : 'lg:col-span-2')}>
+          {filteredExpenses.length === 0 ? (
+            <EmptyExpenses onAddExpense={() => setShowGuidedAdd(true)} />
           ) : (
-            !showGuidedAdd && <QuickAddExpense onAdd={handleAddExpense} />
+            <ExpenseTimeline expenses={filteredExpenses} onEdit={handleEditExpense} onDelete={handleDeleteExpense} compact={!isSimpleMode} />
           )}
-
-          {/* Filters */}
-          <ExpenseFilters onFilterChange={setFilters} compact={!isSimpleMode} hideTypeFilter />
-
-          {/* Main Content Grid */}
-          <div className={cn('grid gap-6', isSimpleMode ? 'lg:grid-cols-1' : 'lg:grid-cols-3')}>
-            <div className={cn(isSimpleMode ? '' : 'lg:col-span-2')}>
-              {filteredExpenses.length === 0 ? (
-                <EmptyExpenses onAddExpense={() => setShowGuidedAdd(true)} />
-              ) : (
-                <ExpenseTimeline expenses={filteredExpenses} onEdit={handleEditExpense} onDelete={handleDeleteExpense} compact={!isSimpleMode} />
-              )}
-            </div>
-            <div className={cn('space-y-6', isSimpleMode && 'grid gap-6 sm:grid-cols-2 lg:grid-cols-1 space-y-0')}>
-              <BudgetCard
-                budget={personalBudget}
-                spent={totalSpent}
-                onEdit={() => {
-                  setTempBudget(personalBudget.toString());
-                  setBudgetDialogOpen(true);
-                }}
-                compact={!isSimpleMode}
-              />
-              <InsightsCard insights={personalInsights} showHelper={isSimpleMode} compact={!isSimpleMode} />
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+        <div className={cn('space-y-6', isSimpleMode && 'grid gap-6 sm:grid-cols-2 lg:grid-cols-1 space-y-0')}>
+          <BudgetCard
+            budget={currentBudget}
+            spent={totalSpent}
+            onEdit={() => {
+              setTempBudget(currentBudget.toString());
+              setBudgetDialogOpen(true);
+            }}
+            compact={!isSimpleMode}
+          />
+          <InsightsCard insights={currentInsights} showHelper={isSimpleMode} compact={!isSimpleMode} />
+        </div>
+      </div>
 
       {/* Budget Edit Dialog */}
       <Dialog open={budgetDialogOpen} onOpenChange={setBudgetDialogOpen}>

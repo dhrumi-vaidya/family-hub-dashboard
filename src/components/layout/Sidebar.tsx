@@ -11,25 +11,37 @@ import {
   ChevronLeft,
   Home,
   X,
+  User,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 
-const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+interface NavItem {
+  icon: typeof LayoutDashboard;
+  label: string;
+  path: string;
+  adminOnly?: boolean;
+}
+
+const navItems: NavItem[] = [
+  { icon: LayoutDashboard, label: 'Dashboard', path: '/', adminOnly: true },
+  { icon: LayoutDashboard, label: 'My Dashboard', path: '/member-dashboard', adminOnly: false },
   { icon: Wallet, label: 'Expenses', path: '/expenses' },
   { icon: Heart, label: 'Health Records', path: '/health' },
   { icon: CheckSquare, label: 'Responsibilities', path: '/responsibilities' },
-  { icon: Users, label: 'Members', path: '/members' },
+  { icon: Users, label: 'Members', path: '/members', adminOnly: true },
   { icon: Settings, label: 'Settings', path: '/settings' },
-  { icon: Users, label: 'Profile', path: '/profile' },
-  { icon: FileText, label: 'Audit Logs', path: '/audit-logs' },
+  { icon: User, label: 'Profile', path: '/profile' },
+  { icon: FileText, label: 'Audit Logs', path: '/audit-logs', adminOnly: true },
 ];
 
 export function Sidebar() {
   const { mode, sidebarCollapsed, setSidebarCollapsed } = useApp();
+  const { user } = useAuth();
   const location = useLocation();
+  const isAdmin = user?.role === 'admin';
 
   const [isDesktop, setIsDesktop] = useState(() => {
     if (typeof window === 'undefined') return true;
@@ -42,6 +54,16 @@ export function Sidebar() {
     mql.addEventListener('change', onChange);
     return () => mql.removeEventListener('change', onChange);
   }, []);
+
+  // Filter nav items based on role
+  const filteredNavItems = navItems.filter((item) => {
+    // Admin sees admin-only items and items without adminOnly flag
+    if (isAdmin) {
+      return item.adminOnly !== false; // Hide member-only items (adminOnly: false)
+    }
+    // Members see non-admin items only
+    return item.adminOnly !== true;
+  });
 
   // Desktop: Simple mode is always expanded; Fast mode can collapse.
   // Small screens: both modes use the collapsed state to open/close the drawer.
@@ -118,7 +140,7 @@ export function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-          {navItems.map((item) => {
+          {filteredNavItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <NavLink
