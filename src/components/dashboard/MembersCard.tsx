@@ -11,18 +11,21 @@ export function MembersCard() {
     <StatCard
       title="Family Members"
       icon={Users}
-      iconColor="text-secondary-foreground"
-      ctaLabel="Manage Members"
+      iconColor="text-secondary"
+      ctaLabel="Manage members"
       ctaPath="/members"
       delay={4}
     >
       <div className="flex items-center gap-6">
+        {/* Total members - primary number */}
         <div>
           <p className="number-display-lg">{currentFamily.memberCount}</p>
           <p className="text-sm text-muted-foreground">Total Members</p>
         </div>
-        <div className="flex items-center gap-2 rounded-lg bg-accent-light px-3 py-2">
-          <Shield className="h-4 w-4 text-accent" />
+        
+        {/* Admin count - secondary */}
+        <div className="flex items-center gap-2 rounded-lg bg-accent px-3 py-2">
+          <Shield className="h-4 w-4 text-accent-foreground" />
           <div>
             <p className="text-lg font-semibold text-foreground">{adminCount}</p>
             <p className="text-xs text-muted-foreground">Admins</p>

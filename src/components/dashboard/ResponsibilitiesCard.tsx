@@ -1,4 +1,4 @@
-import { CheckSquare, Clock, AlertTriangle } from 'lucide-react';
+import { CheckSquare, Clock, AlertCircle } from 'lucide-react';
 import { StatCard } from './StatCard';
 import { useApp } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
@@ -8,50 +8,52 @@ export function ResponsibilitiesCard() {
   
   const stats = {
     pending: 4,
-    escalated: 1,
-    completed: 12,
+    overdue: 1,
   };
 
   return (
     <StatCard
-      title="Responsibilities Status"
+      title="Responsibilities"
       icon={CheckSquare}
-      iconColor="text-accent"
-      ctaLabel="View Tasks"
+      iconColor="text-accent-foreground"
+      ctaLabel="View responsibilities"
       ctaPath="/responsibilities"
       delay={3}
     >
       <div className="grid grid-cols-2 gap-3">
+        {/* Pending confirmations */}
         <div className="rounded-lg bg-warning-light p-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-1">
             <Clock className="h-4 w-4 text-warning" />
-            <span className="text-sm font-medium text-warning-foreground">Pending</span>
+            <span className="text-xs font-medium text-warning-foreground">Pending</span>
           </div>
-          <p className="mt-1 number-display">{stats.pending}</p>
+          <p className="number-display">{stats.pending}</p>
         </div>
+        
+        {/* Overdue tasks */}
         <div className={cn(
           'rounded-lg p-3',
-          stats.escalated > 0 ? 'bg-destructive-light' : 'bg-success-light'
+          stats.overdue > 0 ? 'bg-destructive-light' : 'bg-success-light'
         )}>
-          <div className="flex items-center gap-2">
-            <AlertTriangle className={cn(
+          <div className="flex items-center gap-2 mb-1">
+            <AlertCircle className={cn(
               'h-4 w-4',
-              stats.escalated > 0 ? 'text-destructive' : 'text-success'
+              stats.overdue > 0 ? 'text-destructive' : 'text-success'
             )} />
             <span className={cn(
-              'text-sm font-medium',
-              stats.escalated > 0 ? 'text-destructive' : 'text-success'
+              'text-xs font-medium',
+              stats.overdue > 0 ? 'text-destructive' : 'text-success'
             )}>
-              Escalated
+              Overdue
             </span>
           </div>
-          <p className="mt-1 number-display">{stats.escalated}</p>
+          <p className="number-display">{stats.overdue}</p>
         </div>
       </div>
 
       {mode === 'simple' && (
         <p className="helper-text pt-2">
-          {stats.pending} tasks awaiting confirmation from family members.
+          {stats.pending} tasks awaiting confirmation.
         </p>
       )}
     </StatCard>
