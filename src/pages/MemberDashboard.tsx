@@ -84,7 +84,7 @@ export default function MemberDashboard() {
               )}>
                 My Responsibilities
               </CardTitle>
-              <div className="rounded-lg bg-warning/10 p-2">
+              <div className="rounded-lg bg-warning/20 dark:bg-warning/30 p-2">
                 <CheckSquare className="h-5 w-5 text-warning" />
               </div>
             </div>
@@ -104,7 +104,7 @@ export default function MemberDashboard() {
                   )}
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-warning/10">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-warning/20 dark:bg-warning/30">
                       <Clock className="h-5 w-5 text-warning" />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -151,7 +151,7 @@ export default function MemberDashboard() {
               )}>
                 Recent Health Records
               </CardTitle>
-              <div className="rounded-lg bg-destructive/10 p-2">
+              <div className="rounded-lg bg-destructive/15 dark:bg-destructive/25 p-2">
                 <Heart className="h-5 w-5 text-destructive" />
               </div>
             </div>
@@ -165,7 +165,7 @@ export default function MemberDashboard() {
                   isSimpleMode ? "p-4" : ""
                 )}
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-destructive/10">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-destructive/15 dark:bg-destructive/25">
                   <FileText className="h-5 w-5 text-destructive" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -203,7 +203,7 @@ export default function MemberDashboard() {
               )}>
                 Expense Summary
               </CardTitle>
-              <div className="rounded-lg bg-primary/10 p-2">
+              <div className="rounded-lg bg-primary/15 dark:bg-primary/25 p-2">
                 <Wallet className="h-5 w-5 text-primary" />
               </div>
             </div>
@@ -268,7 +268,7 @@ export default function MemberDashboard() {
                     isSimpleMode ? "p-4" : ""
                   )}
                 >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 shrink-0">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 dark:bg-primary/25 shrink-0">
                     <Bell className="h-4 w-4 text-primary" />
                   </div>
                   <div className="min-w-0 flex-1">
