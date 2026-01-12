@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 
 type UXMode = 'simple' | 'fast';
 
@@ -25,6 +25,9 @@ interface AppContextType {
   dismissedHints: string[];
   dismissHint: (hintId: string) => void;
   resetHints: () => void;
+  // Mode selection tracking
+  isModeSelected: boolean;
+  setModeSelected: (selected: boolean) => void;
 }
 
 const defaultFamilies: Family[] = [
@@ -38,13 +41,23 @@ const DISMISSED_HINTS_KEY = 'kutumbos_dismissed_hints';
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+const MODE_SELECTED_KEY = 'kutumbos_mode_selected';
+
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [mode, setMode] = useState<UXMode>('simple');
+  const [mode, setModeState] = useState<UXMode>(() => {
+    const stored = localStorage.getItem('kutumbos_mode');
+    return (stored as UXMode) || 'simple';
+  });
   const [currentFamily, setCurrentFamily] = useState<Family>(defaultFamilies[0]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     // On smaller screens we start with the sidebar closed so it doesn't block content.
     if (typeof window === 'undefined') return false;
     return window.innerWidth < 1024;
+  });
+  // Mode selected state - reactive version
+  const [isModeSelected, setIsModeSelectedState] = useState(() => {
+    const stored = localStorage.getItem(MODE_SELECTED_KEY);
+    return stored === 'true';
   });
   // Onboarding state - check localStorage
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(() => {
@@ -62,6 +75,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem(DISMISSED_HINTS_KEY);
     return stored ? JSON.parse(stored) : [];
   });
+
+  // Wrapper to persist mode selection
+  const setMode = useCallback((newMode: UXMode) => {
+    setModeState(newMode);
+    localStorage.setItem('kutumbos_mode', newMode);
+  }, []);
+
+  // Wrapper to persist mode selected state
+  const setModeSelected = useCallback((selected: boolean) => {
+    setIsModeSelectedState(selected);
+    localStorage.setItem(MODE_SELECTED_KEY, String(selected));
+  }, []);
 
   // Persist onboarding completion
   useEffect(() => {
@@ -99,6 +124,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         dismissedHints,
         dismissHint,
         resetHints,
+        isModeSelected,
+        setModeSelected,
       }}
     >
       <div className={mode === 'simple' ? 'mode-simple' : 'mode-fast'}>

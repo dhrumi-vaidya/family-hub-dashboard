@@ -12,7 +12,7 @@ type ModeOption = 'simple' | 'fast';
 export default function SelectMode() {
   const navigate = useNavigate();
   const { user, isAuthenticated, selectedFamily } = useAuth();
-  const { setMode, setCurrentFamily } = useApp();
+  const { setMode, setCurrentFamily, isModeSelected, setModeSelected } = useApp();
   const [selected, setSelected] = useState<ModeOption>('simple');
 
   useEffect(() => {
@@ -27,17 +27,16 @@ export default function SelectMode() {
     }
 
     // Check if mode already selected this session
-    const modeSelected = localStorage.getItem('kutumbos_mode_selected');
-    if (modeSelected === 'true') {
+    if (isModeSelected) {
       // Sync selected family to AppContext
       setCurrentFamily(selectedFamily);
       navigate(user?.role === 'admin' ? '/' : '/member-dashboard');
     }
-  }, [isAuthenticated, selectedFamily, user, navigate, setCurrentFamily]);
+  }, [isAuthenticated, selectedFamily, user, navigate, setCurrentFamily, isModeSelected]);
 
   const handleContinue = () => {
     setMode(selected);
-    localStorage.setItem('kutumbos_mode_selected', 'true');
+    setModeSelected(true);
     
     // Sync selected family to AppContext
     if (selectedFamily) {

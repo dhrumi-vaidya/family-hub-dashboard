@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AppProvider } from "@/contexts/AppContext";
+import { AppProvider, useApp } from "@/contexts/AppContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { Layout } from "@/components/layout/Layout";
@@ -26,7 +26,7 @@ const queryClient = new QueryClient();
 // Protected Route wrapper
 function ProtectedRoute({ children, adminOnly = false }: { children: React.ReactNode; adminOnly?: boolean }) {
   const { isAuthenticated, user, selectedFamily } = useAuth();
-  const modeSelected = localStorage.getItem('kutumbos_mode_selected') === 'true';
+  const { isModeSelected } = useApp();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -36,7 +36,7 @@ function ProtectedRoute({ children, adminOnly = false }: { children: React.React
     return <Navigate to="/select-family" replace />;
   }
 
-  if (!modeSelected) {
+  if (!isModeSelected) {
     return <Navigate to="/select-mode" replace />;
   }
 
@@ -50,9 +50,9 @@ function ProtectedRoute({ children, adminOnly = false }: { children: React.React
 // Public Route wrapper (redirects if already logged in)
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuth();
-  const modeSelected = localStorage.getItem('kutumbos_mode_selected') === 'true';
+  const { isModeSelected } = useApp();
 
-  if (isAuthenticated && modeSelected) {
+  if (isAuthenticated && isModeSelected) {
     return <Navigate to={user?.role === 'admin' ? '/' : '/member-dashboard'} replace />;
   }
 
@@ -61,8 +61,8 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
 const AppRoutes = () => {
   const { isAuthenticated, user } = useAuth();
-  const modeSelected = localStorage.getItem('kutumbos_mode_selected') === 'true';
-  const showLayout = isAuthenticated && modeSelected;
+  const { isModeSelected } = useApp();
+  const showLayout = isAuthenticated && isModeSelected;
 
   return (
     <Routes>
