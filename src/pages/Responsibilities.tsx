@@ -1,8 +1,15 @@
-import { useState } from 'react';
-import { Plus, Clock, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Plus, Clock, CheckCircle2, AlertTriangle, ArrowRight, User, Filter } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useApp } from '@/contexts/AppContext';
 import { Hint } from '@/components/onboarding/Hint';
 import { cn } from '@/lib/utils';
@@ -68,14 +75,28 @@ const initialResponsibilities: Responsibility[] = [
   },
 ];
 
+const familyMembers = ['All Members', 'Vikram Sharma', 'Rajesh Sharma', 'Anita Sharma', 'Priya Sharma', 'Shanti Devi'];
+const statusOptions = ['All Status', 'Pending', 'Overdue', 'Escalated', 'Confirmed'];
+
 export default function Responsibilities() {
   const { mode } = useApp();
   const [responsibilities, setResponsibilities] = useState<Responsibility[]>(initialResponsibilities);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedResponsibility, setSelectedResponsibility] = useState<Responsibility | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState('All Members');
+  const [selectedStatus, setSelectedStatus] = useState('All Status');
 
   const isAdmin = true; // In real app, this would come from auth context
+
+  // Filter responsibilities based on selected filters
+  const filteredResponsibilities = useMemo(() => {
+    return responsibilities.filter(r => {
+      const memberMatch = selectedMember === 'All Members' || r.assignee === selectedMember;
+      const statusMatch = selectedStatus === 'All Status' || r.status.toLowerCase() === selectedStatus.toLowerCase();
+      return memberMatch && statusMatch;
+    });
+  }, [responsibilities, selectedMember, selectedStatus]);
 
   const handleConfirm = (id: number) => {
     setResponsibilities(prev => prev.map(r => 
@@ -127,7 +148,8 @@ export default function Responsibilities() {
     setShowCreateForm(false);
   };
 
-  const hasResponsibilities = responsibilities.length > 0;
+  const hasResponsibilities = filteredResponsibilities.length > 0;
+  const hasAnyResponsibilities = responsibilities.length > 0;
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -162,6 +184,47 @@ export default function Responsibilities() {
         Assign tasks to family members. They confirm when done. 
         If not confirmed, you'll be notified automatically.
       </Hint>
+
+      {/* Filters */}
+      <Card className="animate-fade-in opacity-0" style={{ animationDelay: '0.05s' }}>
+        <CardContent className={cn(
+          "flex flex-col gap-4 sm:flex-row sm:items-center",
+          mode === 'simple' ? "py-5" : "py-4"
+        )}>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Filter className="h-4 w-4" />
+            <span className="text-sm font-medium">Filter:</span>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 flex-1">
+            <Select value={selectedMember} onValueChange={setSelectedMember}>
+              <SelectTrigger className={cn("w-full sm:w-[180px]", mode === 'simple' && "h-11")}>
+                <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="Family Member" />
+              </SelectTrigger>
+              <SelectContent>
+                {familyMembers.map((member) => (
+                  <SelectItem key={member} value={member}>
+                    {member}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger className={cn("w-full sm:w-[160px]", mode === 'simple' && "h-11")}>
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                {statusOptions.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Task Lifecycle - Simple Mode Only */}
       {mode === 'simple' && (
@@ -211,12 +274,30 @@ export default function Responsibilities() {
       {/* Responsibilities Timeline or Empty State */}
       {hasResponsibilities ? (
         <ResponsibilityTimeline
-          responsibilities={responsibilities}
+          responsibilities={filteredResponsibilities}
           onConfirm={handleConfirm}
           onViewDetails={handleViewDetails}
           onEdit={handleEdit}
           isAdmin={isAdmin}
         />
+      ) : hasAnyResponsibilities ? (
+        <Card className="animate-fade-in">
+          <CardContent className="py-12 text-center">
+            <p className="text-muted-foreground">
+              No responsibilities match your filters.
+            </p>
+            <Button 
+              variant="ghost" 
+              className="mt-4"
+              onClick={() => {
+                setSelectedMember('All Members');
+                setSelectedStatus('All Status');
+              }}
+            >
+              Clear filters
+            </Button>
+          </CardContent>
+        </Card>
       ) : (
         <EmptyResponsibilities onCreateClick={() => setShowCreateForm(true)} />
       )}

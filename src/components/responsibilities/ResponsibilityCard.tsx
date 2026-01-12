@@ -30,30 +30,30 @@ const statusConfig = {
   pending: { 
     label: 'Pending', 
     icon: Clock, 
-    bgColor: 'bg-warning-light',
-    textColor: 'text-warning',
-    badgeColor: 'bg-warning-light text-warning-foreground'
+    bgColor: 'bg-warning/20 dark:bg-warning/30',
+    textColor: 'text-warning dark:text-warning',
+    badgeClass: 'bg-muted dark:bg-muted/60 text-foreground dark:text-foreground border-border'
   },
   confirmed: { 
     label: 'Confirmed', 
     icon: CheckCircle2, 
-    bgColor: 'bg-success-light',
-    textColor: 'text-success',
-    badgeColor: 'bg-success-light text-success'
+    bgColor: 'bg-success/15 dark:bg-success/25',
+    textColor: 'text-success dark:text-success',
+    badgeClass: 'bg-success/20 dark:bg-success/30 text-success dark:text-success border-success/30'
   },
   overdue: { 
     label: 'Overdue', 
     icon: AlertTriangle, 
-    bgColor: 'bg-destructive-light',
-    textColor: 'text-destructive',
-    badgeColor: 'bg-destructive-light text-destructive'
+    bgColor: 'bg-destructive/15 dark:bg-destructive/25',
+    textColor: 'text-destructive dark:text-destructive',
+    badgeClass: 'bg-destructive/20 dark:bg-destructive/30 text-destructive dark:text-destructive border-destructive/30'
   },
   escalated: { 
     label: 'Escalated', 
     icon: AlertTriangle, 
-    bgColor: 'bg-destructive-light',
-    textColor: 'text-destructive',
-    badgeColor: 'bg-destructive-light text-destructive'
+    bgColor: 'bg-destructive/15 dark:bg-destructive/25',
+    textColor: 'text-destructive dark:text-destructive',
+    badgeClass: 'bg-destructive/20 dark:bg-destructive/30 text-destructive dark:text-destructive border-destructive/30'
   },
 };
 
@@ -122,11 +122,11 @@ export function ResponsibilityCard({
           </div>
           
           <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
-            <Badge variant="secondary" className="gap-1.5 whitespace-nowrap">
+            <Badge variant="outline" className="gap-1.5 whitespace-nowrap bg-muted/50 dark:bg-muted/30">
               <RotateCcw className="h-3 w-3" />
               {recurrenceLabels[responsibility.recurrence]}
             </Badge>
-            <Badge className={cn('whitespace-nowrap', config.badgeColor)}>
+            <Badge variant="outline" className={cn('whitespace-nowrap', config.badgeClass)}>
               {config.label}
             </Badge>
           </div>
