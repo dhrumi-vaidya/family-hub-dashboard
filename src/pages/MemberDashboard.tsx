@@ -47,30 +47,44 @@ export default function MemberDashboard() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-0">
       {/* Header */}
       <div className="mb-6 lg:mb-8">
-        <h1 className="text-heading-lg text-foreground">
+        <h1 className={cn(
+          "text-foreground font-semibold",
+          isSimpleMode ? "text-2xl sm:text-3xl" : "text-xl sm:text-2xl"
+        )}>
           Welcome, {user.name.split(' ')[0]}
         </h1>
-        <p className="mt-1 text-body text-muted-foreground">
+        <p className={cn(
+          "mt-1 text-muted-foreground",
+          isSimpleMode ? "text-base" : "text-sm"
+        )}>
           Here's what needs your attention today.
         </p>
       </div>
 
-      {/* Main Grid */}
+      {/* Main Grid - Stacked in Simple Mode for clarity */}
       <div className={cn(
-        'grid gap-6',
-        isSimpleMode ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+        'grid gap-4 sm:gap-6',
+        isSimpleMode 
+          ? 'grid-cols-1' // Single column in simple mode for elders
+          : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
       )}>
-        {/* Pending Responsibilities Card */}
-        <Card className="animate-fade-in md:col-span-2 lg:col-span-1">
+        {/* Pending Responsibilities Card - Show first for members */}
+        <Card className={cn(
+          "animate-fade-in",
+          isSimpleMode ? "" : "sm:col-span-2 lg:col-span-1"
+        )}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-medium text-muted-foreground">
+              <CardTitle className={cn(
+                "font-medium text-muted-foreground",
+                isSimpleMode ? "text-lg" : "text-base"
+              )}>
                 My Responsibilities
               </CardTitle>
-              <div className="rounded-lg bg-warning-light p-2">
+              <div className="rounded-lg bg-warning/10 p-2">
                 <CheckSquare className="h-5 w-5 text-warning" />
               </div>
             </div>
@@ -84,31 +98,43 @@ export default function MemberDashboard() {
               pendingTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="flex items-center justify-between rounded-lg border border-border bg-card p-3"
+                  className={cn(
+                    "flex flex-col sm:flex-row sm:items-center gap-3 rounded-lg border border-border bg-card p-3 sm:p-4",
+                    isSimpleMode ? "gap-4" : ""
+                  )}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-warning-light">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-warning/10">
                       <Clock className="h-5 w-5 text-warning" />
                     </div>
-                    <div>
-                      <p className="font-medium text-foreground">{task.title}</p>
-                      <p className="text-sm text-muted-foreground">Due: {task.dueTime}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className={cn(
+                        "font-medium text-foreground truncate",
+                        isSimpleMode ? "text-lg" : "text-base"
+                      )}>{task.title}</p>
+                      <p className={cn(
+                        "text-muted-foreground",
+                        isSimpleMode ? "text-base" : "text-sm"
+                      )}>Due: {task.dueTime}</p>
                     </div>
                   </div>
                   <Button
-                    size={isSimpleMode ? 'default' : 'sm'}
+                    size={isSimpleMode ? 'lg' : 'default'}
                     onClick={() => handleConfirmTask(task.id)}
-                    className="gap-2"
+                    className={cn(
+                      "gap-2 shrink-0",
+                      isSimpleMode ? "w-full sm:w-auto h-12 text-base" : ""
+                    )}
                   >
                     <CheckSquare className="h-4 w-4" />
-                    {isSimpleMode && 'Confirm done'}
+                    Confirm done
                   </Button>
                 </div>
               ))
             )}
 
-            {isSimpleMode && (
-              <p className="text-sm text-muted-foreground pt-2">
+            {isSimpleMode && pendingTasks.length > 0 && (
+              <p className="text-sm text-muted-foreground pt-2 text-center sm:text-left">
                 Tap "Confirm done" when you complete a task.
               </p>
             )}
@@ -119,10 +145,13 @@ export default function MemberDashboard() {
         <Card className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-medium text-muted-foreground">
+              <CardTitle className={cn(
+                "font-medium text-muted-foreground",
+                isSimpleMode ? "text-lg" : "text-base"
+              )}>
                 Recent Health Records
               </CardTitle>
-              <div className="rounded-lg bg-destructive-light p-2">
+              <div className="rounded-lg bg-destructive/10 p-2">
                 <Heart className="h-5 w-5 text-destructive" />
               </div>
             </div>
@@ -131,18 +160,34 @@ export default function MemberDashboard() {
             {recentHealthRecords.map((record) => (
               <div
                 key={record.id}
-                className="flex items-center gap-3 rounded-lg border border-border bg-card p-3"
+                className={cn(
+                  "flex items-center gap-3 rounded-lg border border-border bg-card p-3",
+                  isSimpleMode ? "p-4" : ""
+                )}
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive-light">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-destructive/10">
                   <FileText className="h-5 w-5 text-destructive" />
                 </div>
-                <div>
-                  <p className="font-medium text-foreground">{record.type}</p>
-                  <p className="text-sm text-muted-foreground">{record.date}</p>
+                <div className="min-w-0 flex-1">
+                  <p className={cn(
+                    "font-medium text-foreground truncate",
+                    isSimpleMode ? "text-lg" : "text-base"
+                  )}>{record.type}</p>
+                  <p className={cn(
+                    "text-muted-foreground",
+                    isSimpleMode ? "text-base" : "text-sm"
+                  )}>{record.date}</p>
                 </div>
               </div>
             ))}
-            <Button variant="soft" className="w-full mt-2" asChild>
+            <Button 
+              variant="outline" 
+              className={cn(
+                "w-full mt-2",
+                isSimpleMode ? "h-12 text-base" : ""
+              )} 
+              asChild
+            >
               <a href="/health">View all records</a>
             </Button>
           </CardContent>
@@ -152,25 +197,37 @@ export default function MemberDashboard() {
         <Card className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-medium text-muted-foreground">
+              <CardTitle className={cn(
+                "font-medium text-muted-foreground",
+                isSimpleMode ? "text-lg" : "text-base"
+              )}>
                 Expense Summary
               </CardTitle>
-              <div className="rounded-lg bg-primary-light p-2">
+              <div className="rounded-lg bg-primary/10 p-2">
                 <Wallet className="h-5 w-5 text-primary" />
               </div>
             </div>
           </CardHeader>
           <CardContent>
             <div className="mb-3">
-              <div className="flex items-baseline gap-2">
-                <span className="number-display-lg">₹45,000</span>
-                <span className="text-sm text-muted-foreground">/ ₹60,000</span>
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span className={cn(
+                  "font-bold text-foreground",
+                  isSimpleMode ? "text-3xl sm:text-4xl" : "text-2xl sm:text-3xl"
+                )}>₹45,000</span>
+                <span className={cn(
+                  "text-muted-foreground",
+                  isSimpleMode ? "text-base" : "text-sm"
+                )}>/ ₹60,000</span>
               </div>
-              <Progress value={75} className="mt-2 h-2" />
-              <p className="mt-1.5 text-sm text-muted-foreground">75% of family budget used</p>
+              <Progress value={75} className="mt-3 h-2" />
+              <p className={cn(
+                "mt-2 text-muted-foreground",
+                isSimpleMode ? "text-base" : "text-sm"
+              )}>75% of family budget used</p>
             </div>
             {isSimpleMode && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mt-4">
                 This is a summary of family expenses. Contact admin for details.
               </p>
             )}
@@ -178,31 +235,51 @@ export default function MemberDashboard() {
         </Card>
 
         {/* Notifications Card */}
-        <Card className="animate-fade-in md:col-span-2 lg:col-span-3" style={{ animationDelay: '0.3s' }}>
+        <Card 
+          className={cn(
+            "animate-fade-in",
+            isSimpleMode ? "" : "sm:col-span-2 lg:col-span-3"
+          )} 
+          style={{ animationDelay: '0.3s' }}
+        >
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-medium text-muted-foreground">
+              <CardTitle className={cn(
+                "font-medium text-muted-foreground",
+                isSimpleMode ? "text-lg" : "text-base"
+              )}>
                 Notifications
               </CardTitle>
-              <Badge variant="secondary">{notifications.length} new</Badge>
+              <Badge variant="secondary" className={isSimpleMode ? "text-sm px-3 py-1" : ""}>
+                {notifications.length} new
+              </Badge>
             </div>
           </CardHeader>
           <CardContent>
             <div className={cn(
               'grid gap-3',
-              isSimpleMode ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'
+              isSimpleMode ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'
             )}>
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className="flex items-start gap-3 rounded-lg border border-border bg-card p-3"
+                  className={cn(
+                    "flex items-start gap-3 rounded-lg border border-border bg-card p-3",
+                    isSimpleMode ? "p-4" : ""
+                  )}
                 >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-light flex-shrink-0">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 shrink-0">
                     <Bell className="h-4 w-4 text-primary" />
                   </div>
-                  <div>
-                    <p className="text-sm text-foreground">{notification.message}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{notification.time}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className={cn(
+                      "text-foreground",
+                      isSimpleMode ? "text-base" : "text-sm"
+                    )}>{notification.message}</p>
+                    <p className={cn(
+                      "text-muted-foreground mt-1",
+                      isSimpleMode ? "text-sm" : "text-xs"
+                    )}>{notification.time}</p>
                   </div>
                 </div>
               ))}
@@ -216,8 +293,8 @@ export default function MemberDashboard() {
         <Card className="mt-6 bg-muted/30">
           <CardContent className="py-4">
             <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
-              <p className="text-sm text-muted-foreground">
+              <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
+              <p className="text-sm sm:text-base text-muted-foreground">
                 You are viewing as a family member. Some features like adding members or editing budgets are only available to family admins.
               </p>
             </div>
