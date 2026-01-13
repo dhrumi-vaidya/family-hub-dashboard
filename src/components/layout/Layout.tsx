@@ -24,14 +24,17 @@ export function Layout({ children }: LayoutProps) {
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden">
+    <div className={cn("flex h-screen w-full overflow-hidden", `mode-${mode}`)}>
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header />
         <main
           className={cn(
-            'flex-1 overflow-y-auto p-4 lg:p-6',
-            mode === 'simple' ? 'lg:p-8' : 'lg:p-6'
+            'flex-1 overflow-y-auto transition-all duration-200',
+            // Mode-specific padding with consistent rhythm
+            mode === 'simple' 
+              ? 'p-4 sm:p-6 lg:p-8' 
+              : 'p-4 sm:p-5 lg:p-6'
           )}
         >
           {children}

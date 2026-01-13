@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PageHeader } from '@/components/ui/page-header';
+import { FormModal } from '@/components/ui/form-modal';
 import { useApp } from '@/contexts/AppContext';
+import { getModeClasses } from '@/lib/design-tokens';
 import { QuickAddExpense } from '@/components/expenses/QuickAddExpense';
 import { GuidedAddExpense } from '@/components/expenses/GuidedAddExpense';
 import { ExpenseTimeline } from '@/components/expenses/ExpenseTimeline';
@@ -55,6 +57,7 @@ const months = [
 
 export default function Expenses() {
   const { mode } = useApp();
+  const classes = getModeClasses(mode);
   const isSimpleMode = mode === 'simple';
 
   const [view, setView] = useState<'family' | 'personal'>('family');
@@ -132,42 +135,50 @@ export default function Expenses() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-heading-lg text-foreground">Expenses</h1>
-          <p className="mt-1 text-body text-muted-foreground">
-            Understand spending, without effort.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* Month Selector */}
-          <div className="flex items-center gap-1 rounded-lg border border-border bg-card px-2 py-1">
-            <Button variant="ghost" size="icon-sm" onClick={goToPreviousMonth}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <span className="min-w-[100px] text-center text-sm font-medium">
-              {months[selectedMonth]} {selectedYear}
-            </span>
-            <Button 
-              variant="ghost" 
-              size="icon-sm" 
-              onClick={goToNextMonth}
-              disabled={selectedMonth === new Date().getMonth()}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+      {/* Page Header - Consistent across all pages */}
+      <PageHeader
+        title="Expenses"
+        subtitle="Understand spending, without effort."
+        action={
+          <div className="flex items-center gap-3">
+            {/* Month Selector */}
+            <div className="flex items-center gap-1 rounded-lg border border-border bg-card px-2 py-1">
+              <Button 
+                variant="ghost" 
+                size="icon-sm" 
+                onClick={goToPreviousMonth}
+                aria-label="Previous month"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="min-w-[100px] text-center text-sm font-medium">
+                {months[selectedMonth]} {selectedYear}
+              </span>
+              <Button 
+                variant="ghost" 
+                size="icon-sm" 
+                onClick={goToNextMonth}
+                disabled={selectedMonth === new Date().getMonth()}
+                aria-label="Next month"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
 
-          {/* Add Expense Button (Fast Mode only) */}
-          {!isSimpleMode && (
-            <Button className="gap-2" onClick={() => setShowGuidedAdd(true)}>
-              <Plus className="h-4 w-4" />
-              Add Expense
-            </Button>
-          )}
-        </div>
-      </div>
+            {/* Add Expense Button (Fast Mode only) */}
+            {!isSimpleMode && (
+              <Button 
+                className="gap-2" 
+                onClick={() => setShowGuidedAdd(true)}
+                size={classes.buttonPrimary as any}
+              >
+                <Plus className="h-4 w-4" />
+                Add Expense
+              </Button>
+            )}
+          </div>
+        }
+      />
 
       {/* Charts with Family/Personal Tabs in top-right */}
       <div className="space-y-4">
@@ -206,8 +217,8 @@ export default function Expenses() {
       {/* Filters */}
       <ExpenseFilters onFilterChange={setFilters} compact={!isSimpleMode} hideTypeFilter />
 
-      {/* Main Content Grid */}
-      <div className={cn('grid gap-6', isSimpleMode ? 'lg:grid-cols-1' : 'lg:grid-cols-3')}>
+      {/* Main Content Grid - Consistent spacing */}
+      <div className={cn('grid', classes.gridGap, isSimpleMode ? 'lg:grid-cols-1' : 'lg:grid-cols-3')}>
         <div className={cn(isSimpleMode ? '' : 'lg:col-span-2')}>
           {filteredExpenses.length === 0 ? (
             <EmptyExpenses onAddExpense={() => setShowGuidedAdd(true)} />
@@ -229,34 +240,26 @@ export default function Expenses() {
         </div>
       </div>
 
-      {/* Budget Edit Dialog */}
-      <Dialog open={budgetDialogOpen} onOpenChange={setBudgetDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>Edit {view === 'personal' ? 'Personal' : 'Family'} Budget</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="budget">Budget Amount (₹)</Label>
-              <Input
-                id="budget"
-                type="number"
-                value={tempBudget}
-                onChange={(e) => setTempBudget(e.target.value)}
-                placeholder="Enter budget amount"
-              />
-            </div>
-            <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setBudgetDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSaveBudget}>
-                Save Budget
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Budget Edit Dialog - Using new FormModal */}
+      <FormModal
+        open={budgetDialogOpen}
+        onOpenChange={setBudgetDialogOpen}
+        title={`Edit ${view === 'personal' ? 'Personal' : 'Family'} Budget`}
+        onSubmit={handleSaveBudget}
+        submitLabel="Save Budget"
+      >
+        <div className="space-y-2">
+          <Label htmlFor="budget">Budget Amount (₹) *</Label>
+          <Input
+            id="budget"
+            type="number"
+            value={tempBudget}
+            onChange={(e) => setTempBudget(e.target.value)}
+            placeholder="Enter budget amount"
+            required
+          />
+        </div>
+      </FormModal>
     </div>
   );
 }

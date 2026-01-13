@@ -10,14 +10,17 @@ import { PersonalTasksCard } from '@/components/dashboard/PersonalTasksCard';
 import { PersonalHealthCard } from '@/components/dashboard/PersonalHealthCard';
 import { Hint } from '@/components/onboarding/Hint';
 import { SimpleModeBanner } from '@/components/onboarding/SimpleModeBanner';
+import { PageHeader } from '@/components/ui/page-header';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { getModeClasses } from '@/lib/design-tokens';
 import { cn } from '@/lib/utils';
-import { Wallet, Heart, FileText, Plus } from 'lucide-react';
+import { Wallet, Heart, FileText, Plus, Home } from 'lucide-react';
 
 export default function Dashboard() {
   const { mode, currentFamily } = useApp();
+  const classes = getModeClasses(mode);
   const [view, setView] = useState<'family' | 'personal'>('family');
 
   // Check if there's any data (for empty state)
@@ -27,101 +30,90 @@ export default function Dashboard() {
     <div className="mx-auto max-w-7xl">
       <SimpleModeBanner />
       
-      {/* Page Header - Updated per KutumbOS spec */}
-      <div className="mb-6 lg:mb-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-heading-lg text-foreground">
-              {view === 'family' ? 'Family Overview' : 'Personal Overview'}
-            </h1>
-            <p className="mt-1 text-body text-muted-foreground">
-              {view === 'family'
-                ? 'Everything important, at one place.'
-                : 'Your personal tasks and budget, at a glance.'}
-            </p>
-          </div>
-          
+      {/* Page Header - Consistent across all pages */}
+      <PageHeader
+        title={view === 'family' ? '👨‍👩‍👧‍👦 Family Overview' : '👤 Personal Overview'}
+        subtitle={view === 'family'
+          ? 'Everything important, at one place.'
+          : 'Your personal tasks and budget, at a glance.'}
+        action={
           <Tabs value={view} onValueChange={(v) => setView(v as 'family' | 'personal')}>
-            <TabsList>
-              <TabsTrigger value="family">Family</TabsTrigger>
-              <TabsTrigger value="personal">Personal</TabsTrigger>
+            <TabsList className={cn(
+              mode === 'simple' ? "h-12" : "h-10"
+            )}>
+              <TabsTrigger 
+                value="family"
+                className={cn(
+                  mode === 'simple' ? "px-6 py-2 text-base" : "px-4 py-1.5 text-sm"
+                )}
+              >
+                Family
+              </TabsTrigger>
+              <TabsTrigger 
+                value="personal"
+                className={cn(
+                  mode === 'simple' ? "px-6 py-2 text-base" : "px-4 py-1.5 text-sm"
+                )}
+              >
+                Personal
+              </TabsTrigger>
             </TabsList>
           </Tabs>
-        </div>
-        
-        {mode === 'simple' && (
-          <Hint id="dashboard-intro" className="mt-4">
-            {view === 'family'
-              ? 'This is your family dashboard. Click on any card to see more details. Switch to Personal view to see your own stats.'
-              : 'This is your personal dashboard. See your budget, tasks, and health at a glance.'}
-          </Hint>
-        )}
-      </div>
+        }
+        className="mb-6 lg:mb-8"
+      />
+      
+      {mode === 'simple' && (
+        <Hint id="dashboard-intro" className="mb-6">
+          {view === 'family'
+            ? 'This is your family dashboard. Click on any card to see more details. Switch to Personal view to see your own stats.'
+            : 'This is your personal dashboard. See your budget, tasks, and health at a glance.'}
+        </Hint>
+      )}
 
       {/* Family View */}
       {view === 'family' && (
         <div className="space-y-6">
-          {/* Empty State */}
+          {/* Empty State - Using new EmptyState component */}
           {!hasData ? (
-            <Card className="animate-fade-in">
-              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="mb-6 flex gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-light">
-                    <Wallet className="h-6 w-6 text-primary" />
-                  </div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive-light">
-                    <Heart className="h-6 w-6 text-destructive" />
-                  </div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent-light">
-                    <FileText className="h-6 w-6 text-accent-foreground" />
-                  </div>
-                </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  Welcome to KutumbOS
-                </h3>
-                <p className="text-muted-foreground max-w-md mb-6">
-                  Start by adding expenses, health records, or responsibilities.
-                </p>
-                <div className="flex flex-wrap gap-3 justify-center">
-                  <Button variant="default" asChild>
+            <EmptyState
+              icon={Home}
+              title="Welcome to KutumbOS"
+              description="Start by adding expenses, health records, or responsibilities to see your family dashboard."
+              action={
+                <>
+                  <Button size={classes.buttonPrimary as any} asChild>
                     <a href="/expenses">
                       <Plus className="mr-2 h-4 w-4" />
-                      Add expense
+                      Add Expense
                     </a>
                   </Button>
-                  <Button variant="outline" asChild>
+                  <Button variant="outline" size={classes.buttonSecondary as any} asChild>
                     <a href="/health">
                       <Plus className="mr-2 h-4 w-4" />
-                      Upload health record
+                      Upload Health Record
                     </a>
                   </Button>
-                  <Button variant="outline" asChild>
+                  <Button variant="outline" size={classes.buttonSecondary as any} asChild>
                     <a href="/responsibilities">
                       <Plus className="mr-2 h-4 w-4" />
-                      Create responsibility
+                      Create Responsibility
                     </a>
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
+                </>
+              }
+            />
           ) : (
             <>
-              {/* Stats Grid - 2 columns Simple, 3 columns Fast */}
-              <div
-                className={cn(
-                  'grid gap-4 lg:gap-6',
-                  mode === 'simple'
-                    ? 'grid-cols-1 md:grid-cols-2'
-                    : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-                )}
-              >
+              {/* Stats Grid - Consistent spacing using design tokens */}
+              <div className={cn(classes.gridCols, classes.gridGap)}>
                 <ExpenseCard />
                 <HealthCard />
                 <ResponsibilitiesCard />
                 <MembersCard />
               </div>
               
-              {/* Charts Section */}
+              {/* Charts Section - Consistent spacing */}
               <div className={cn(
                 'grid gap-4 lg:gap-6',
                 mode === 'simple' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2'

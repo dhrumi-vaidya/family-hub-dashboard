@@ -142,6 +142,7 @@ export function Sidebar() {
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
           {filteredNavItems.map((item) => {
             const isActive = location.pathname === item.path;
+            const isAdminOnly = item.adminOnly === true;
             return (
               <NavLink
                 key={item.path}
@@ -158,13 +159,37 @@ export function Sidebar() {
                     setSidebarCollapsed(true);
                   }
                 }}
+                aria-label={`Navigate to ${item.label}`}
               >
                 <item.icon className={cn('h-5 w-5 shrink-0', isActive && 'text-primary')} />
-                {!isCollapsed && <span>{item.label}</span>}
+                {!isCollapsed && (
+                  <div className="flex items-center justify-between w-full">
+                    <span>{item.label}</span>
+                    {isAdminOnly && (
+                      <span className="text-xs text-muted-foreground ml-auto">👑</span>
+                    )}
+                  </div>
+                )}
               </NavLink>
             );
           })}
         </nav>
+
+        {/* Mode Indicator & Shortcuts */}
+        {!isCollapsed && (
+          <div className="border-t border-sidebar-border p-3 space-y-2">
+            <div className="text-xs text-muted-foreground">
+              {mode === 'simple' ? '📖 Simple Mode' : '⚡ Fast Mode'}
+            </div>
+            {mode === 'fast' && (
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p className="font-medium">Shortcuts</p>
+                <p>⌘K: Search</p>
+                <p>⌘/: Help</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Expand button (Fast Mode only) */}
         {mode === 'fast' && isCollapsed && (
