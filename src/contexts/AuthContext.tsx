@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { apiClient } from '@/lib/api';
 
-export type UserRole = 'admin' | 'member';
+export type UserRole = 'admin' | 'member' | 'super_admin';
 
 export interface Family {
   id: string;

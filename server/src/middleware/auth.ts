@@ -10,7 +10,7 @@ declare global {
       user?: {
         id: string;
         email: string;
-        role: 'admin' | 'member';
+        role: 'admin' | 'member' | 'super_admin';
         familyIds: string[];
       };
     }
@@ -112,6 +112,23 @@ export const requireFamilyAccess = (req: Request, res: Response, next: NextFunct
     return res.status(403).json({ 
       success: false, 
       error: 'Access to this family not allowed' 
+    });
+  }
+
+  next();
+};
+export const requireSuperAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return res.status(401).json({ 
+      success: false, 
+      error: 'Authentication required' 
+    });
+  }
+
+  if (req.user.role !== 'super_admin') {
+    return res.status(403).json({ 
+      success: false, 
+      error: 'Super Admin access required' 
     });
   }
 

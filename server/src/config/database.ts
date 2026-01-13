@@ -42,13 +42,29 @@ export const mockUsers: User[] = [
     createdAt: new Date('2024-01-01'),
     updatedAt: new Date('2024-01-01'),
   },
+  {
+    id: 'super_admin_1',
+    name: 'System Administrator',
+    email: 'super.admin@kutumb.com',
+    password: '', // Will be set below with different password
+    role: 'super_admin',
+    families: [], // Super admin doesn't belong to any family
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
+  },
 ];
 
 // Initialize passwords (in real app, this would be done during user creation)
 const initializePasswords = async () => {
-  const hashedPassword = await bcrypt.hash('password123', 12);
+  const regularPassword = await bcrypt.hash('password123', 12);
+  const superAdminPassword = await bcrypt.hash('QWerty@123', 12);
+  
   mockUsers.forEach(user => {
-    user.password = hashedPassword;
+    if (user.role === 'super_admin') {
+      user.password = superAdminPassword;
+    } else {
+      user.password = regularPassword;
+    }
   });
 };
 

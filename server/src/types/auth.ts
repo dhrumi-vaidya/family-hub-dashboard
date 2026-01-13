@@ -3,7 +3,7 @@ export interface User {
   name: string;
   email: string;
   password: string;
-  role: 'admin' | 'member';
+  role: 'admin' | 'member' | 'super_admin';
   families: Family[];
   createdAt: Date;
   updatedAt: Date;
@@ -33,7 +33,7 @@ export interface AuthResponse {
 export interface JWTPayload {
   userId: string;
   email: string;
-  role: 'admin' | 'member';
+  role: 'admin' | 'member' | 'super_admin';
   familyIds: string[];
 }
 
