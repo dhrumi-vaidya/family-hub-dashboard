@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, Clock, CheckCircle2, AlertTriangle, ArrowRight, User, Filter } from 'lucide-react';
+import { Plus, Clock, CheckCircle2, AlertTriangle, ArrowRight, User, Filter, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +19,8 @@ import { QuickCreateResponsibility } from '@/components/responsibilities/QuickCr
 import { EmptyResponsibilities } from '@/components/responsibilities/EmptyResponsibilities';
 import { ResponsibilityDetailsModal } from '@/components/responsibilities/ResponsibilityDetailsModal';
 import { Responsibility } from '@/components/responsibilities/ResponsibilityCard';
+import { LoadingSkeleton, ErrorState } from '@/components/ui/page-states';
+import { AdminOnly, useIsAdmin } from '@/components/ui/role-visibility';
 import { toast } from 'sonner';
 
 const initialResponsibilities: Responsibility[] = [
@@ -80,14 +82,17 @@ const statusOptions = ['All Status', 'Pending', 'Overdue', 'Escalated', 'Confirm
 
 export default function Responsibilities() {
   const { mode } = useApp();
+  const isAdmin = useIsAdmin();
   const [responsibilities, setResponsibilities] = useState<Responsibility[]>(initialResponsibilities);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedResponsibility, setSelectedResponsibility] = useState<Responsibility | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState('All Members');
   const [selectedStatus, setSelectedStatus] = useState('All Status');
-
-  const isAdmin = true; // In real app, this would come from auth context
+  
+  // UI States
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Filter responsibilities based on selected filters
   const filteredResponsibilities = useMemo(() => {
@@ -146,10 +151,68 @@ export default function Responsibilities() {
     };
     setResponsibilities(prev => [newResponsibility, ...prev]);
     setShowCreateForm(false);
+    toast.success('Responsibility created successfully.');
+  };
+
+  const handleRetry = () => {
+    setError(null);
+    setIsLoading(true);
+    // Simulate reload
+    setTimeout(() => setIsLoading(false), 1000);
   };
 
   const hasResponsibilities = filteredResponsibilities.length > 0;
   const hasAnyResponsibilities = responsibilities.length > 0;
+
+  // Error State
+  if (error) {
+    return (
+      <div className="mx-auto max-w-4xl space-y-6">
+        <div>
+          <h1 className={cn(
+            "font-bold text-foreground",
+            mode === 'simple' ? 'text-2xl' : 'text-xl'
+          )}>
+            Responsibilities
+          </h1>
+          <p className={cn(
+            "mt-1 text-muted-foreground",
+            mode === 'simple' ? 'text-base' : 'text-sm'
+          )}>
+            Who needs to do what — clearly.
+          </p>
+        </div>
+        <ErrorState 
+          variant="network" 
+          message={error}
+          onRetry={handleRetry}
+        />
+      </div>
+    );
+  }
+
+  // Loading State
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-4xl space-y-6">
+        <div>
+          <h1 className={cn(
+            "font-bold text-foreground",
+            mode === 'simple' ? 'text-2xl' : 'text-xl'
+          )}>
+            Responsibilities
+          </h1>
+          <p className={cn(
+            "mt-1 text-muted-foreground",
+            mode === 'simple' ? 'text-base' : 'text-sm'
+          )}>
+            Who needs to do what — clearly.
+          </p>
+        </div>
+        <LoadingSkeleton variant="list" count={4} className="max-w-4xl" />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -169,20 +232,24 @@ export default function Responsibilities() {
             Who needs to do what — clearly.
           </p>
         </div>
-        {isAdmin && !showCreateForm && mode === 'simple' && (
-          <Button 
-            className={cn("gap-2", mode === 'simple' ? 'h-11 px-5' : '')}
-            onClick={() => setShowCreateForm(true)}
-          >
-            <Plus className="h-4 w-4" />
-            Create Responsibility
-          </Button>
-        )}
+        {/* Admin-only create button - hidden for members */}
+        <AdminOnly>
+          {!showCreateForm && mode === 'simple' && (
+            <Button 
+              className={cn("gap-2", mode === 'simple' ? 'h-11 px-5' : '')}
+              onClick={() => setShowCreateForm(true)}
+            >
+              <Plus className="h-4 w-4" />
+              Create Responsibility
+            </Button>
+          )}
+        </AdminOnly>
       </div>
       
       <Hint id="responsibilities-intro">
-        Assign tasks to family members. They confirm when done. 
-        If not confirmed, you'll be notified automatically.
+        {isAdmin 
+          ? 'Assign tasks to family members. They confirm when done. If not confirmed, you\'ll be notified automatically.'
+          : 'View your assigned tasks here. Tap "Mark Done" when you complete a task.'}
       </Hint>
 
       {/* Filters */}
@@ -244,12 +311,12 @@ export default function Responsibilities() {
                 Reminder Sent
               </Badge>
               <ArrowRight className="h-4 w-4 text-muted-foreground" />
-              <Badge variant="outline" className="gap-1.5 px-3 py-2 text-success">
+              <Badge variant="outline" className="gap-1.5 px-3 py-2 text-success border-success/30">
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 Confirmed
               </Badge>
               <ArrowRight className="h-4 w-4 text-muted-foreground" />
-              <Badge variant="outline" className="gap-1.5 px-3 py-2 text-destructive">
+              <Badge variant="outline" className="gap-1.5 px-3 py-2 text-destructive border-destructive/30">
                 <AlertTriangle className="h-3.5 w-3.5" />
                 Escalated
               </Badge>
@@ -258,18 +325,22 @@ export default function Responsibilities() {
         </Card>
       )}
 
-      {/* Quick Create - Fast Mode */}
-      {mode === 'fast' && isAdmin && (
-        <QuickCreateResponsibility onComplete={handleCreateComplete} />
-      )}
+      {/* Quick Create - Fast Mode (Admin only) */}
+      <AdminOnly>
+        {mode === 'fast' && (
+          <QuickCreateResponsibility onComplete={handleCreateComplete} />
+        )}
+      </AdminOnly>
 
-      {/* Guided Create Form - Simple Mode */}
-      {mode === 'simple' && showCreateForm && (
-        <GuidedCreateResponsibility 
-          onComplete={handleCreateComplete}
-          onCancel={() => setShowCreateForm(false)}
-        />
-      )}
+      {/* Guided Create Form - Simple Mode (Admin only) */}
+      <AdminOnly>
+        {mode === 'simple' && showCreateForm && (
+          <GuidedCreateResponsibility 
+            onComplete={handleCreateComplete}
+            onCancel={() => setShowCreateForm(false)}
+          />
+        )}
+      </AdminOnly>
 
       {/* Responsibilities Timeline or Empty State */}
       {hasResponsibilities ? (
@@ -283,12 +354,15 @@ export default function Responsibilities() {
       ) : hasAnyResponsibilities ? (
         <Card className="animate-fade-in">
           <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">
-              No responsibilities match your filters.
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted/50 mx-auto mb-4">
+              <Filter className="h-7 w-7 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">No matching responsibilities</h3>
+            <p className="text-muted-foreground mb-4">
+              No responsibilities match your current filters.
             </p>
             <Button 
-              variant="ghost" 
-              className="mt-4"
+              variant="outline" 
               onClick={() => {
                 setSelectedMember('All Members');
                 setSelectedStatus('All Status');
