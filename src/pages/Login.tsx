@@ -131,6 +131,9 @@ export default function Login() {
             <div className="mt-6 p-3 rounded-lg bg-muted/50 text-sm">
               <p className="font-medium text-foreground mb-2">Demo Credentials:</p>
               <p className="text-muted-foreground">
+                <strong>Super Admin:</strong> super.admin@kutumb.com / Qwerty@123
+              </p>
+              <p className="text-muted-foreground">
                 <strong>Admin:</strong> rahul@sharma.com / password123
               </p>
               <p className="text-muted-foreground">

@@ -20,6 +20,7 @@ import Login from "./pages/Login";
 import SelectFamily from "./pages/SelectFamily";
 import SelectMode from "./pages/SelectMode";
 import MemberDashboard from "./pages/MemberDashboard";
+import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,11 @@ function ProtectedRoute({ children, adminOnly = false }: { children: React.React
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Super admin bypasses family/mode selection
+  if (user?.role === 'super_admin') {
+    return <Navigate to="/super-admin" replace />;
   }
 
   if (!selectedFamily && user && user.families.length > 1) {
@@ -47,13 +53,33 @@ function ProtectedRoute({ children, adminOnly = false }: { children: React.React
   return <>{children}</>;
 }
 
+// Super Admin Route wrapper
+function SuperAdminRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, user } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user?.role !== 'super_admin') {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+}
+
 // Public Route wrapper (redirects if already logged in)
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuth();
   const { isModeSelected } = useApp();
 
-  if (isAuthenticated && isModeSelected) {
-    return <Navigate to={user?.role === 'admin' ? '/' : '/member-dashboard'} replace />;
+  if (isAuthenticated) {
+    if (user?.role === 'super_admin') {
+      return <Navigate to="/super-admin" replace />;
+    }
+    if (isModeSelected) {
+      return <Navigate to={user?.role === 'admin' ? '/' : '/member-dashboard'} replace />;
+    }
   }
 
   return <>{children}</>;
@@ -62,7 +88,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 const AppRoutes = () => {
   const { isAuthenticated, user } = useAuth();
   const { isModeSelected } = useApp();
-  const showLayout = isAuthenticated && isModeSelected;
+  const showLayout = isAuthenticated && isModeSelected && user?.role !== 'super_admin';
 
   return (
     <Routes>
@@ -70,6 +96,9 @@ const AppRoutes = () => {
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/select-family" element={<SelectFamily />} />
       <Route path="/select-mode" element={<SelectMode />} />
+
+      {/* Super Admin Routes */}
+      <Route path="/super-admin/*" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
 
       {/* Protected Routes with Layout */}
       <Route
