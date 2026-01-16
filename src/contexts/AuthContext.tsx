@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-export type UserRole = 'admin' | 'member';
+export type UserRole = 'admin' | 'member' | 'super_admin';
 
 export interface Family {
   id: string;
@@ -27,6 +27,17 @@ interface AuthContextType {
 
 // Dummy users for demonstration
 const dummyUsers: { email: string; password: string; user: User }[] = [
+  {
+    email: 'super.admin@kutumb.com',
+    password: 'Qwerty@123',
+    user: {
+      id: '0',
+      name: 'System Administrator',
+      email: 'super.admin@kutumb.com',
+      role: 'super_admin',
+      families: [],
+    },
+  },
   {
     email: 'rahul@sharma.com',
     password: 'password123',
