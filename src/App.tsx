@@ -21,15 +21,12 @@ import Login from "./pages/Login";
 import SelectFamily from "./pages/SelectFamily";
 import SelectMode from "./pages/SelectMode";
 import MemberDashboard from "./pages/MemberDashboard";
-<<<<<<< HEAD
+import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import MainAdminDashboard from "./pages/admin/MainAdminDashboard";
 import AdminFamilyManagement from "./pages/admin/AdminFamilyManagement";
 import AdminUserManagement from "./pages/admin/AdminUserManagement";
 import AdminConfiguration from "./pages/admin/AdminConfiguration";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
-=======
-import SuperAdminDashboard from "./pages/SuperAdminDashboard";
->>>>>>> f24815e57e741723c0b0d4432bd4044b7bcfd025
 
 const queryClient = new QueryClient();
 
@@ -46,24 +43,16 @@ function ProtectedRoute({ children, adminOnly = false, superAdminOnly = false }:
     return <Navigate to="/login" replace />;
   }
 
-<<<<<<< HEAD
   // Super Admin bypass: Skip family selection and mode selection
   if (user?.role === 'super_admin') {
     if (superAdminOnly) {
       return <>{children}</>;
     }
     // Super admin trying to access family features - redirect to admin panel
-    return <Navigate to="/admin" replace />;
-  }
-
-  // Regular users (admin/member) need family and mode selection
-=======
-  // Super admin bypasses family/mode selection
-  if (user?.role === 'super_admin') {
     return <Navigate to="/super-admin" replace />;
   }
 
->>>>>>> f24815e57e741723c0b0d4432bd4044b7bcfd025
+  // Regular users (admin/member) need family and mode selection
   if (!selectedFamily && user && user.families.length > 1) {
     return <Navigate to="/select-family" replace />;
   }
@@ -104,18 +93,12 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   const { isModeSelected } = useApp();
 
   if (isAuthenticated) {
-<<<<<<< HEAD
-    // Super Admin goes directly to admin panel
-    if (user?.role === 'super_admin') {
-      return <Navigate to="/admin" replace />;
-    }
-    
-    // Regular users go to their respective dashboards
-=======
+    // Super Admin goes directly to super admin dashboard
     if (user?.role === 'super_admin') {
       return <Navigate to="/super-admin" replace />;
     }
->>>>>>> f24815e57e741723c0b0d4432bd4044b7bcfd025
+    
+    // Regular users go to their respective dashboards
     if (isModeSelected) {
       return <Navigate to={user?.role === 'admin' ? '/' : '/member-dashboard'} replace />;
     }
@@ -127,12 +110,8 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 const AppRoutes = () => {
   const { isAuthenticated, user } = useAuth();
   const { isModeSelected } = useApp();
-<<<<<<< HEAD
-  const showLayout = isAuthenticated && isModeSelected;
-  const showAdminLayout = isAuthenticated && user?.role === 'super_admin';
-=======
   const showLayout = isAuthenticated && isModeSelected && user?.role !== 'super_admin';
->>>>>>> f24815e57e741723c0b0d4432bd4044b7bcfd025
+  const showSuperAdminLayout = isAuthenticated && user?.role === 'super_admin';
 
   return (
     <Routes>
@@ -141,35 +120,10 @@ const AppRoutes = () => {
       <Route path="/select-family" element={<SelectFamily />} />
       <Route path="/select-mode" element={<SelectMode />} />
 
-<<<<<<< HEAD
-      {/* Main Admin Panel Routes - Separate from family dashboard */}
-      <Route
-        path="/admin/*"
-        element={
-          showAdminLayout ? (
-            <AdminLayout>
-              <Routes>
-                <Route path="/" element={<ProtectedRoute superAdminOnly><MainAdminDashboard /></ProtectedRoute>} />
-                <Route path="/families" element={<ProtectedRoute superAdminOnly><AdminFamilyManagement /></ProtectedRoute>} />
-                <Route path="/users" element={<ProtectedRoute superAdminOnly><AdminUserManagement /></ProtectedRoute>} />
-                <Route path="/config" element={<ProtectedRoute superAdminOnly><AdminConfiguration /></ProtectedRoute>} />
-                <Route path="/logs" element={<ProtectedRoute superAdminOnly><AdminAuditLogs /></ProtectedRoute>} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </AdminLayout>
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        }
-      />
-
-      {/* Protected Routes with Family Layout */}
-=======
       {/* Super Admin Routes */}
       <Route path="/super-admin/*" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
 
       {/* Protected Routes with Layout */}
->>>>>>> f24815e57e741723c0b0d4432bd4044b7bcfd025
       <Route
         path="/*"
         element={

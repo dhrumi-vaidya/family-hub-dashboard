@@ -20,14 +20,12 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; user?: User }>;
   logout: () => void;
   selectedFamily: Family | null;
   setSelectedFamily: (family: Family) => void;
 }
 
-<<<<<<< HEAD
-=======
 // Dummy users for demonstration
 const dummyUsers: { email: string; password: string; user: User }[] = [
   {
@@ -93,7 +91,6 @@ const dummyUsers: { email: string; password: string; user: User }[] = [
   },
 ];
 
->>>>>>> f24815e57e741723c0b0d4432bd4044b7bcfd025
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -106,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return stored ? JSON.parse(stored) : null;
   });
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string; user?: User }> => {
     try {
       const response = await apiClient.login(email, password);
       
@@ -114,13 +111,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(response.user);
         localStorage.setItem('kutumbos_user', JSON.stringify(response.user));
         
-        // Auto-select family if only one
-        if (response.user.families.length === 1) {
+        // Auto-select family if only one (but not for super admin)
+        if (response.user.role !== 'super_admin' && response.user.families.length === 1) {
           setSelectedFamily(response.user.families[0]);
           localStorage.setItem('kutumbos_selected_family', JSON.stringify(response.user.families[0]));
         }
         
-        return { success: true };
+        return { success: true, user: response.user };
       }
 
       return { success: false, error: response.error || 'Login failed' };

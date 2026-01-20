@@ -6,11 +6,11 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 
-// Load environment variables
+// Load environment variables first
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 4567;
+const PORT = parseInt(process.env.PORT || '5001', 10);
 
 // Security middleware
 app.use(helmet({
@@ -21,15 +21,37 @@ app.use(helmet({
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
+  'http://localhost:8080',
+  'http://192.168.1.145:8080',
   'http://192.168.1.145:8081',
   process.env.CORS_ORIGIN
 ].filter((origin): origin is string => Boolean(origin));
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow any localhost origin for development
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return callback(null, true);
+    }
+    
+    // Allow any origin from the local network (192.168.x.x)
+    if (origin.match(/^https?:\/\/192\.168\.\d+\.\d+:\d+$/)) {
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
 
 // Rate limiting
@@ -52,6 +74,9 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -89,11 +114,12 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 KutumbOS API server running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔒 CORS origin: ${process.env.CORS_ORIGIN || 'http://localhost:5173'}`);
+  console.log(`🔒 CORS origins configured for frontend`);
   console.log(`⚡ Health check: http://localhost:${PORT}/api/health`);
+  console.log(`🌐 Network access: http://192.168.1.145:${PORT}/api/health`);
 });
 
 export default app;

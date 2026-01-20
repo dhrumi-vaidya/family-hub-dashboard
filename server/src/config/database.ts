@@ -57,7 +57,7 @@ export const mockUsers: User[] = [
 // Initialize passwords (in real app, this would be done during user creation)
 const initializePasswords = async () => {
   const regularPassword = await bcrypt.hash('password123', 12);
-  const superAdminPassword = await bcrypt.hash('QWerty@123', 12);
+  const superAdminPassword = await bcrypt.hash('Qwerty@123', 12); // Fixed: lowercase 'w'
   
   mockUsers.forEach(user => {
     if (user.role === 'super_admin') {

@@ -15,7 +15,7 @@ const loginSchema = z.object({
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -37,8 +37,13 @@ export default function Login() {
 
     const loginResult = await login(email, password);
 
-    if (loginResult.success) {
-      navigate('/select-family');
+    if (loginResult.success && loginResult.user) {
+      // Redirect based on user role
+      if (loginResult.user.role === 'super_admin') {
+        navigate('/super-admin');
+      } else {
+        navigate('/select-family');
+      }
     } else {
       setError(loginResult.error || 'Unable to connect. Please try again.');
     }
@@ -145,18 +150,6 @@ export default function Login() {
             </p>
 
             {/* Demo credentials hint */}
-<<<<<<< HEAD
-            <div className="mt-6 p-4 rounded-lg bg-muted/50 border border-border/50 text-sm">
-              <p className="font-medium text-foreground mb-3">Demo Credentials:</p>
-              <div className="space-y-2">
-                <p className="text-muted-foreground">
-                  <strong className="text-foreground">Admin:</strong> rahul@sharma.com / password123
-                </p>
-                <p className="text-muted-foreground">
-                  <strong className="text-foreground">Member:</strong> sunita@sharma.com / password123
-                </p>
-              </div>
-=======
             <div className="mt-6 p-3 rounded-lg bg-muted/50 text-sm">
               <p className="font-medium text-foreground mb-2">Demo Credentials:</p>
               <p className="text-muted-foreground">
@@ -168,7 +161,6 @@ export default function Login() {
               <p className="text-muted-foreground">
                 <strong>Member:</strong> sunita@sharma.com / password123
               </p>
->>>>>>> f24815e57e741723c0b0d4432bd4044b7bcfd025
             </div>
           </CardContent>
         </Card>

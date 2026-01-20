@@ -147,24 +147,24 @@ export function FamiliesPreviewPanel({
 
   if (isLoading) {
     return (
-      <Card className="border-slate-700/50 bg-slate-800/30">
+      <Card className="border-border bg-card">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg text-slate-200">Families Management</CardTitle>
-            <Skeleton className="h-9 w-48 bg-slate-700" />
+            <CardTitle className="text-lg text-foreground">Families Management</CardTitle>
+            <Skeleton className="h-9 w-48 bg-muted" />
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-slate-800/50">
+            <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-muted/30">
               <div className="flex items-center gap-3">
-                <Skeleton className="h-10 w-10 rounded-lg bg-slate-700" />
+                <Skeleton className="h-10 w-10 rounded-lg bg-muted" />
                 <div className="space-y-2">
-                  <Skeleton className="h-4 w-28 bg-slate-700" />
-                  <Skeleton className="h-3 w-40 bg-slate-700" />
+                  <Skeleton className="h-4 w-28 bg-muted" />
+                  <Skeleton className="h-3 w-40 bg-muted" />
                 </div>
               </div>
-              <Skeleton className="h-6 w-20 rounded-full bg-slate-700" />
+              <Skeleton className="h-6 w-20 rounded-full bg-muted" />
             </div>
           ))}
         </CardContent>
@@ -174,21 +174,21 @@ export function FamiliesPreviewPanel({
 
   return (
     <>
-      <Card className="border-slate-700/50 bg-slate-800/30">
+      <Card className="border-border bg-card">
         <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <CardTitle className="text-lg text-slate-200 flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-amber-400" />
+            <CardTitle className="text-lg text-foreground flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               Families Management
             </CardTitle>
             <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder="Search families..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 bg-slate-900 border-slate-700 text-slate-200 placeholder:text-slate-500 h-9"
+                className="pl-9 bg-background border-input text-foreground placeholder:text-muted-foreground h-9"
               />
             </div>
           </div>
@@ -196,20 +196,20 @@ export function FamiliesPreviewPanel({
         <CardContent>
           {filteredFamilies.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="h-16 w-16 rounded-full bg-slate-700/50 flex items-center justify-center mb-4">
-                <Building2 className="h-8 w-8 text-slate-500" />
+              <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                <Building2 className="h-8 w-8 text-muted-foreground" />
               </div>
               {searchQuery ? (
                 <>
-                  <p className="text-slate-300 font-medium">No families found</p>
-                  <p className="text-sm text-slate-500 mt-1">
+                  <p className="text-foreground font-medium">No families found</p>
+                  <p className="text-sm text-muted-foreground mt-1">
                     No families match "{searchQuery}"
                   </p>
                 </>
               ) : (
                 <>
-                  <p className="text-slate-300 font-medium">No families registered</p>
-                  <p className="text-sm text-slate-500 mt-1">
+                  <p className="text-foreground font-medium">No families registered</p>
+                  <p className="text-sm text-muted-foreground mt-1">
                     Families will appear here when they join the platform
                   </p>
                 </>
@@ -224,15 +224,15 @@ export function FamiliesPreviewPanel({
                 return (
                   <div
                     key={family.id}
-                    className="flex items-center justify-between p-4 rounded-lg bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800/80 transition-colors"
+                    className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-slate-700/50 flex items-center justify-center">
-                        <Building2 className="h-5 w-5 text-slate-400" />
+                      <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                        <Building2 className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <div>
-                        <p className="font-medium text-slate-200">{family.name}</p>
-                        <div className="flex items-center gap-3 text-sm text-slate-400">
+                        <p className="font-medium text-foreground">{family.name}</p>
+                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <UserCog className="h-3.5 w-3.5" />
                             {family.adminCount} Admin{family.adminCount !== 1 ? 's' : ''}
@@ -252,22 +252,22 @@ export function FamiliesPreviewPanel({
                       </Badge>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-200 hover:bg-slate-700">
+                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground hover:bg-muted">
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700">
+                        <DropdownMenuContent align="end" className="bg-popover border-border">
                           <DropdownMenuItem 
-                            className="text-slate-300 hover:bg-slate-800 cursor-pointer"
+                            className="text-foreground hover:bg-muted cursor-pointer"
                             onClick={() => onViewFamily?.(family)}
                           >
                             <Eye className="mr-2 h-4 w-4" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-slate-700" />
+                          <DropdownMenuSeparator className="bg-border" />
                           {family.status === 'suspended' ? (
                             <DropdownMenuItem 
-                              className="text-emerald-400 hover:bg-emerald-500/10 cursor-pointer"
+                              className="text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10 cursor-pointer"
                               onClick={() => handleAction('reinstate', family)}
                             >
                               <CheckCircle2 className="mr-2 h-4 w-4" />
@@ -275,7 +275,7 @@ export function FamiliesPreviewPanel({
                             </DropdownMenuItem>
                           ) : (
                             <DropdownMenuItem 
-                              className="text-red-400 hover:bg-red-500/10 cursor-pointer"
+                              className="text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 cursor-pointer"
                               onClick={() => handleAction('suspend', family)}
                             >
                               <Ban className="mr-2 h-4 w-4" />
@@ -291,10 +291,10 @@ export function FamiliesPreviewPanel({
             </div>
           )}
 
-          <div className="mt-4 pt-4 border-t border-slate-700/50">
+          <div className="mt-4 pt-4 border-t border-border">
             <Button 
               variant="outline" 
-              className="w-full text-amber-400 border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-300"
+              className="w-full text-amber-600 border-amber-200 hover:bg-amber-50 hover:text-amber-700 dark:text-amber-400 dark:border-amber-500/30 dark:hover:bg-amber-500/10 dark:hover:text-amber-300"
             >
               View All Families
             </Button>
@@ -304,27 +304,27 @@ export function FamiliesPreviewPanel({
 
       {/* Confirmation Dialog */}
       <AlertDialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog({ ...confirmDialog, open: false })}>
-        <AlertDialogContent className="bg-slate-900 border-slate-700">
+        <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-200">
+            <AlertDialogTitle className="text-foreground">
               {confirmDialog.action === 'suspend' ? 'Suspend Family' : 'Reinstate Family'}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
+            <AlertDialogDescription className="text-muted-foreground">
               {confirmDialog.action === 'suspend' ? (
                 <>
-                  Are you sure you want to suspend <strong className="text-slate-300">{confirmDialog.family?.name}</strong>? 
+                  Are you sure you want to suspend <strong className="text-foreground">{confirmDialog.family?.name}</strong>? 
                   This will restrict all family members from accessing the platform.
                 </>
               ) : (
                 <>
-                  Are you sure you want to reinstate <strong className="text-slate-300">{confirmDialog.family?.name}</strong>? 
+                  Are you sure you want to reinstate <strong className="text-foreground">{confirmDialog.family?.name}</strong>? 
                   This will restore access for all family members.
                 </>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700">
+            <AlertDialogCancel className="bg-secondary border-border text-secondary-foreground hover:bg-secondary/80">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
