@@ -26,6 +26,74 @@ interface AuthContextType {
   setSelectedFamily: (family: Family) => void;
 }
 
+<<<<<<< HEAD
+=======
+// Dummy users for demonstration
+const dummyUsers: { email: string; password: string; user: User }[] = [
+  {
+    email: 'super.admin@kutumb.com',
+    password: 'Qwerty@123',
+    user: {
+      id: '0',
+      name: 'System Administrator',
+      email: 'super.admin@kutumb.com',
+      role: 'super_admin',
+      families: [],
+    },
+  },
+  {
+    email: 'rahul@sharma.com',
+    password: 'password123',
+    user: {
+      id: '1',
+      name: 'Rahul Sharma',
+      email: 'rahul@sharma.com',
+      role: 'admin',
+      families: [
+        { id: '1', name: 'Sharma Family', memberCount: 8 },
+        { id: '2', name: 'Verma Family', memberCount: 5 },
+      ],
+    },
+  },
+  {
+    email: 'sunita@sharma.com',
+    password: 'password123',
+    user: {
+      id: '2',
+      name: 'Sunita Sharma',
+      email: 'sunita@sharma.com',
+      role: 'member',
+      families: [{ id: '1', name: 'Sharma Family', memberCount: 8 }],
+    },
+  },
+  {
+    email: '9876543210',
+    password: 'password123',
+    user: {
+      id: '1',
+      name: 'Rahul Sharma',
+      email: 'rahul@sharma.com',
+      role: 'admin',
+      families: [
+        { id: '1', name: 'Sharma Family', memberCount: 8 },
+        { id: '2', name: 'Verma Family', memberCount: 5 },
+      ],
+    },
+  },
+  {
+    email: '9876543211',
+    password: 'password123',
+    user: {
+      id: '2',
+      name: 'Sunita Sharma',
+      email: 'sunita@sharma.com',
+      role: 'member',
+      families: [{ id: '1', name: 'Sharma Family', memberCount: 8 }],
+    },
+  },
+];
+
+>>>>>>> f24815e57e741723c0b0d4432bd4044b7bcfd025
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {

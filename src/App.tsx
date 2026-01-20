@@ -21,11 +21,15 @@ import Login from "./pages/Login";
 import SelectFamily from "./pages/SelectFamily";
 import SelectMode from "./pages/SelectMode";
 import MemberDashboard from "./pages/MemberDashboard";
+<<<<<<< HEAD
 import MainAdminDashboard from "./pages/admin/MainAdminDashboard";
 import AdminFamilyManagement from "./pages/admin/AdminFamilyManagement";
 import AdminUserManagement from "./pages/admin/AdminUserManagement";
 import AdminConfiguration from "./pages/admin/AdminConfiguration";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
+=======
+import SuperAdminDashboard from "./pages/SuperAdminDashboard";
+>>>>>>> f24815e57e741723c0b0d4432bd4044b7bcfd025
 
 const queryClient = new QueryClient();
 
@@ -42,6 +46,7 @@ function ProtectedRoute({ children, adminOnly = false, superAdminOnly = false }:
     return <Navigate to="/login" replace />;
   }
 
+<<<<<<< HEAD
   // Super Admin bypass: Skip family selection and mode selection
   if (user?.role === 'super_admin') {
     if (superAdminOnly) {
@@ -52,6 +57,13 @@ function ProtectedRoute({ children, adminOnly = false, superAdminOnly = false }:
   }
 
   // Regular users (admin/member) need family and mode selection
+=======
+  // Super admin bypasses family/mode selection
+  if (user?.role === 'super_admin') {
+    return <Navigate to="/super-admin" replace />;
+  }
+
+>>>>>>> f24815e57e741723c0b0d4432bd4044b7bcfd025
   if (!selectedFamily && user && user.families.length > 1) {
     return <Navigate to="/select-family" replace />;
   }
@@ -71,18 +83,39 @@ function ProtectedRoute({ children, adminOnly = false, superAdminOnly = false }:
   return <>{children}</>;
 }
 
+// Super Admin Route wrapper
+function SuperAdminRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, user } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user?.role !== 'super_admin') {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+}
+
 // Public Route wrapper (redirects if already logged in)
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuth();
   const { isModeSelected } = useApp();
 
   if (isAuthenticated) {
+<<<<<<< HEAD
     // Super Admin goes directly to admin panel
     if (user?.role === 'super_admin') {
       return <Navigate to="/admin" replace />;
     }
     
     // Regular users go to their respective dashboards
+=======
+    if (user?.role === 'super_admin') {
+      return <Navigate to="/super-admin" replace />;
+    }
+>>>>>>> f24815e57e741723c0b0d4432bd4044b7bcfd025
     if (isModeSelected) {
       return <Navigate to={user?.role === 'admin' ? '/' : '/member-dashboard'} replace />;
     }
@@ -94,8 +127,12 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 const AppRoutes = () => {
   const { isAuthenticated, user } = useAuth();
   const { isModeSelected } = useApp();
+<<<<<<< HEAD
   const showLayout = isAuthenticated && isModeSelected;
   const showAdminLayout = isAuthenticated && user?.role === 'super_admin';
+=======
+  const showLayout = isAuthenticated && isModeSelected && user?.role !== 'super_admin';
+>>>>>>> f24815e57e741723c0b0d4432bd4044b7bcfd025
 
   return (
     <Routes>
@@ -104,6 +141,7 @@ const AppRoutes = () => {
       <Route path="/select-family" element={<SelectFamily />} />
       <Route path="/select-mode" element={<SelectMode />} />
 
+<<<<<<< HEAD
       {/* Main Admin Panel Routes - Separate from family dashboard */}
       <Route
         path="/admin/*"
@@ -126,6 +164,12 @@ const AppRoutes = () => {
       />
 
       {/* Protected Routes with Family Layout */}
+=======
+      {/* Super Admin Routes */}
+      <Route path="/super-admin/*" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
+
+      {/* Protected Routes with Layout */}
+>>>>>>> f24815e57e741723c0b0d4432bd4044b7bcfd025
       <Route
         path="/*"
         element={

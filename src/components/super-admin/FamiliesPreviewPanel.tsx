@@ -1,0 +1,345 @@
+import { useState } from 'react';
+import { 
+  Building2, 
+  Search, 
+  Eye, 
+  Ban, 
+  CheckCircle2, 
+  MoreHorizontal,
+  AlertTriangle,
+  Users,
+  UserCog
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { cn } from '@/lib/utils';
+
+interface Family {
+  id: string;
+  name: string;
+  adminCount: number;
+  memberCount: number;
+  createdAt: string;
+  status: 'active' | 'flagged' | 'suspended';
+}
+
+interface FamiliesPreviewPanelProps {
+  families?: Family[];
+  isLoading?: boolean;
+  onViewFamily?: (family: Family) => void;
+  onSuspendFamily?: (family: Family) => void;
+  onReinstateFamily?: (family: Family) => void;
+}
+
+const dummyFamilies: Family[] = [
+  {
+    id: '1',
+    name: 'Sharma Family',
+    adminCount: 2,
+    memberCount: 8,
+    createdAt: '2024-01-15',
+    status: 'active',
+  },
+  {
+    id: '2',
+    name: 'Verma Family',
+    adminCount: 1,
+    memberCount: 5,
+    createdAt: '2024-02-20',
+    status: 'active',
+  },
+  {
+    id: '3',
+    name: 'Gupta Family',
+    adminCount: 1,
+    memberCount: 4,
+    createdAt: '2024-03-10',
+    status: 'flagged',
+  },
+  {
+    id: '4',
+    name: 'Patel Family',
+    adminCount: 2,
+    memberCount: 6,
+    createdAt: '2024-03-25',
+    status: 'active',
+  },
+  {
+    id: '5',
+    name: 'Singh Family',
+    adminCount: 1,
+    memberCount: 3,
+    createdAt: '2024-04-01',
+    status: 'suspended',
+  },
+];
+
+const statusConfig = {
+  active: {
+    label: 'Active',
+    className: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+    icon: CheckCircle2,
+  },
+  flagged: {
+    label: 'Flagged',
+    className: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+    icon: AlertTriangle,
+  },
+  suspended: {
+    label: 'Suspended',
+    className: 'bg-red-500/20 text-red-300 border-red-500/30',
+    icon: Ban,
+  },
+};
+
+export function FamiliesPreviewPanel({
+  families = dummyFamilies,
+  isLoading = false,
+  onViewFamily,
+  onSuspendFamily,
+  onReinstateFamily,
+}: FamiliesPreviewPanelProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    action: 'suspend' | 'reinstate';
+    family: Family | null;
+  }>({ open: false, action: 'suspend', family: null });
+
+  const filteredFamilies = families.filter((family) =>
+    family.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleAction = (action: 'suspend' | 'reinstate', family: Family) => {
+    setConfirmDialog({ open: true, action, family });
+  };
+
+  const confirmAction = () => {
+    if (confirmDialog.family) {
+      if (confirmDialog.action === 'suspend') {
+        onSuspendFamily?.(confirmDialog.family);
+      } else {
+        onReinstateFamily?.(confirmDialog.family);
+      }
+    }
+    setConfirmDialog({ open: false, action: 'suspend', family: null });
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="border-slate-700/50 bg-slate-800/30">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg text-slate-200">Families Management</CardTitle>
+            <Skeleton className="h-9 w-48 bg-slate-700" />
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-slate-800/50">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-10 w-10 rounded-lg bg-slate-700" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-28 bg-slate-700" />
+                  <Skeleton className="h-3 w-40 bg-slate-700" />
+                </div>
+              </div>
+              <Skeleton className="h-6 w-20 rounded-full bg-slate-700" />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <Card className="border-slate-700/50 bg-slate-800/30">
+        <CardHeader className="pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <CardTitle className="text-lg text-slate-200 flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-amber-400" />
+              Families Management
+            </CardTitle>
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+              <Input
+                type="search"
+                placeholder="Search families..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 bg-slate-900 border-slate-700 text-slate-200 placeholder:text-slate-500 h-9"
+              />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {filteredFamilies.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="h-16 w-16 rounded-full bg-slate-700/50 flex items-center justify-center mb-4">
+                <Building2 className="h-8 w-8 text-slate-500" />
+              </div>
+              {searchQuery ? (
+                <>
+                  <p className="text-slate-300 font-medium">No families found</p>
+                  <p className="text-sm text-slate-500 mt-1">
+                    No families match "{searchQuery}"
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-slate-300 font-medium">No families registered</p>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Families will appear here when they join the platform
+                  </p>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredFamilies.map((family) => {
+                const status = statusConfig[family.status];
+                const StatusIcon = status.icon;
+
+                return (
+                  <div
+                    key={family.id}
+                    className="flex items-center justify-between p-4 rounded-lg bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800/80 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-lg bg-slate-700/50 flex items-center justify-center">
+                        <Building2 className="h-5 w-5 text-slate-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-200">{family.name}</p>
+                        <div className="flex items-center gap-3 text-sm text-slate-400">
+                          <span className="flex items-center gap-1">
+                            <UserCog className="h-3.5 w-3.5" />
+                            {family.adminCount} Admin{family.adminCount !== 1 ? 's' : ''}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Users className="h-3.5 w-3.5" />
+                            {family.memberCount} Member{family.memberCount !== 1 ? 's' : ''}
+                          </span>
+                          <span>Created {family.createdAt}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Badge variant="outline" className={cn('flex items-center gap-1', status.className)}>
+                        <StatusIcon className="h-3 w-3" />
+                        {status.label}
+                      </Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-200 hover:bg-slate-700">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-slate-900 border-slate-700">
+                          <DropdownMenuItem 
+                            className="text-slate-300 hover:bg-slate-800 cursor-pointer"
+                            onClick={() => onViewFamily?.(family)}
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="bg-slate-700" />
+                          {family.status === 'suspended' ? (
+                            <DropdownMenuItem 
+                              className="text-emerald-400 hover:bg-emerald-500/10 cursor-pointer"
+                              onClick={() => handleAction('reinstate', family)}
+                            >
+                              <CheckCircle2 className="mr-2 h-4 w-4" />
+                              Reinstate Family
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem 
+                              className="text-red-400 hover:bg-red-500/10 cursor-pointer"
+                              onClick={() => handleAction('suspend', family)}
+                            >
+                              <Ban className="mr-2 h-4 w-4" />
+                              Suspend Family
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="mt-4 pt-4 border-t border-slate-700/50">
+            <Button 
+              variant="outline" 
+              className="w-full text-amber-400 border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-300"
+            >
+              View All Families
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={confirmDialog.open} onOpenChange={(open) => !open && setConfirmDialog({ ...confirmDialog, open: false })}>
+        <AlertDialogContent className="bg-slate-900 border-slate-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-slate-200">
+              {confirmDialog.action === 'suspend' ? 'Suspend Family' : 'Reinstate Family'}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              {confirmDialog.action === 'suspend' ? (
+                <>
+                  Are you sure you want to suspend <strong className="text-slate-300">{confirmDialog.family?.name}</strong>? 
+                  This will restrict all family members from accessing the platform.
+                </>
+              ) : (
+                <>
+                  Are you sure you want to reinstate <strong className="text-slate-300">{confirmDialog.family?.name}</strong>? 
+                  This will restore access for all family members.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmAction}
+              className={cn(
+                confirmDialog.action === 'suspend' 
+                  ? 'bg-red-600 hover:bg-red-700' 
+                  : 'bg-emerald-600 hover:bg-emerald-700'
+              )}
+            >
+              {confirmDialog.action === 'suspend' ? 'Suspend' : 'Reinstate'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}

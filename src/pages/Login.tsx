@@ -145,6 +145,7 @@ export default function Login() {
             </p>
 
             {/* Demo credentials hint */}
+<<<<<<< HEAD
             <div className="mt-6 p-4 rounded-lg bg-muted/50 border border-border/50 text-sm">
               <p className="font-medium text-foreground mb-3">Demo Credentials:</p>
               <div className="space-y-2">
@@ -155,6 +156,19 @@ export default function Login() {
                   <strong className="text-foreground">Member:</strong> sunita@sharma.com / password123
                 </p>
               </div>
+=======
+            <div className="mt-6 p-3 rounded-lg bg-muted/50 text-sm">
+              <p className="font-medium text-foreground mb-2">Demo Credentials:</p>
+              <p className="text-muted-foreground">
+                <strong>Super Admin:</strong> super.admin@kutumb.com / Qwerty@123
+              </p>
+              <p className="text-muted-foreground">
+                <strong>Admin:</strong> rahul@sharma.com / password123
+              </p>
+              <p className="text-muted-foreground">
+                <strong>Member:</strong> sunita@sharma.com / password123
+              </p>
+>>>>>>> f24815e57e741723c0b0d4432bd4044b7bcfd025
             </div>
           </CardContent>
         </Card>
