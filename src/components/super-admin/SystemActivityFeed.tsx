@@ -67,8 +67,8 @@ const activityConfig: Record<ActivityType, {
   },
   settings_changed: {
     icon: Settings,
-    color: 'text-slate-400',
-    bgColor: 'bg-slate-500/10',
+    color: 'text-muted-foreground',
+    bgColor: 'bg-muted/30',
   },
   member_added: {
     icon: UserPlus,
@@ -146,20 +146,20 @@ export function SystemActivityFeed({
 }: SystemActivityFeedProps) {
   if (isLoading) {
     return (
-      <Card className="border-slate-700/50 bg-slate-800/30">
+      <Card className="border-border bg-card">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg text-slate-200">System Activity</CardTitle>
+          <CardTitle className="text-lg text-foreground">System Activity</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="flex items-start gap-3">
-                <Skeleton className="h-9 w-9 rounded-lg shrink-0 bg-slate-700" />
+                <Skeleton className="h-9 w-9 rounded-lg shrink-0 bg-muted" />
                 <div className="flex-1 space-y-2">
-                  <Skeleton className="h-4 w-3/4 bg-slate-700" />
-                  <Skeleton className="h-3 w-1/2 bg-slate-700" />
+                  <Skeleton className="h-4 w-3/4 bg-muted" />
+                  <Skeleton className="h-3 w-1/2 bg-muted" />
                 </div>
-                <Skeleton className="h-3 w-16 bg-slate-700" />
+                <Skeleton className="h-3 w-16 bg-muted" />
               </div>
             ))}
           </div>
@@ -170,20 +170,20 @@ export function SystemActivityFeed({
 
   if (activities.length === 0) {
     return (
-      <Card className="border-slate-700/50 bg-slate-800/30">
+      <Card className="border-border bg-card">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg text-slate-200 flex items-center gap-2">
-            <Clock className="h-5 w-5 text-slate-400" />
+          <CardTitle className="text-lg text-foreground flex items-center gap-2">
+            <Clock className="h-5 w-5 text-muted-foreground" />
             System Activity
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="h-16 w-16 rounded-full bg-slate-700/50 flex items-center justify-center mb-4">
-              <Clock className="h-8 w-8 text-slate-500" />
+            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+              <Clock className="h-8 w-8 text-muted-foreground" />
             </div>
-            <p className="text-slate-300 font-medium">No recent activity</p>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-foreground font-medium">No recent activity</p>
+            <p className="text-sm text-muted-foreground mt-1">
               System events will appear here as they occur
             </p>
           </div>
@@ -193,10 +193,10 @@ export function SystemActivityFeed({
   }
 
   return (
-    <Card className="border-slate-700/50 bg-slate-800/30">
+    <Card className="border-border bg-card">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg text-slate-200 flex items-center gap-2">
-          <Clock className="h-5 w-5 text-slate-400" />
+        <CardTitle className="text-lg text-foreground flex items-center gap-2">
+          <Clock className="h-5 w-5 text-muted-foreground" />
           System Activity
         </CardTitle>
       </CardHeader>
@@ -211,13 +211,13 @@ export function SystemActivityFeed({
                 <div
                   key={activity.id}
                   className={cn(
-                    'relative flex items-start gap-3 p-3 rounded-lg hover:bg-slate-800/50 transition-colors',
-                    index !== activities.length - 1 && 'border-b border-slate-700/30'
+                    'relative flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors',
+                    index !== activities.length - 1 && 'border-b border-border/40'
                   )}
                 >
                   {/* Timeline connector */}
                   {index !== activities.length - 1 && (
-                    <div className="absolute left-[26px] top-[52px] w-0.5 h-[calc(100%-20px)] bg-slate-700/50" />
+                    <div className="absolute left-[26px] top-[52px] w-0.5 h-[calc(100%-20px)] bg-border" />
                   )}
                   
                   <div className={cn('h-9 w-9 rounded-lg flex items-center justify-center shrink-0 relative z-10', config.bgColor)}>
@@ -227,16 +227,16 @@ export function SystemActivityFeed({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="font-medium text-sm text-slate-200">{activity.title}</p>
-                        <p className="text-sm text-slate-400 mt-0.5">{activity.description}</p>
+                        <p className="font-medium text-sm text-foreground">{activity.title}</p>
+                        <p className="text-sm text-muted-foreground mt-0.5">{activity.description}</p>
                       </div>
-                      <span className="text-xs text-slate-500 whitespace-nowrap">{activity.timestamp}</span>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">{activity.timestamp}</span>
                     </div>
                     <div className="flex items-center gap-2 mt-2">
-                      <Badge variant="outline" className="text-xs bg-slate-800 text-slate-400 border-slate-600">
+                      <Badge variant="outline" className="text-xs bg-muted text-muted-foreground border-border">
                         {activity.actor === 'system' ? '🤖 System' : `👤 ${activity.actor}`}
                       </Badge>
-                      <Badge variant="outline" className="text-xs bg-slate-800 text-slate-400 border-slate-600">
+                      <Badge variant="outline" className="text-xs bg-muted text-muted-foreground border-border">
                         📁 {activity.affectedEntity}
                       </Badge>
                     </div>
@@ -247,10 +247,10 @@ export function SystemActivityFeed({
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t border-slate-700/50">
+        <div className="p-4 border-t border-border">
           <Button
             variant="outline"
-            className="w-full text-slate-400 border-slate-600 hover:bg-slate-800 hover:text-slate-200"
+            className="w-full text-muted-foreground border-border hover:bg-muted hover:text-foreground"
             onClick={onViewAll}
           >
             View Full Activity Log

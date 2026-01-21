@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { apiClient } from '@/lib/api';
 
 export type UserRole = 'admin' | 'member' | 'super_admin';
 
@@ -19,7 +20,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; user?: User }>;
   logout: () => void;
   selectedFamily: Family | null;
   setSelectedFamily: (family: Family) => void;
@@ -102,31 +103,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return stored ? JSON.parse(stored) : null;
   });
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    const foundUser = dummyUsers.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-    );
-
-    if (foundUser) {
-      setUser(foundUser.user);
-      localStorage.setItem('kutumbos_user', JSON.stringify(foundUser.user));
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string; user?: User }> => {
+    // For demo deployment - use mock authentication only
+    const dummyUser = dummyUsers.find(u => u.email === email && u.password === password);
+    
+    if (dummyUser) {
+      setUser(dummyUser.user);
+      localStorage.setItem('kutumbos_user', JSON.stringify(dummyUser.user));
       
-      // Auto-select family if only one
-      if (foundUser.user.families.length === 1) {
-        setSelectedFamily(foundUser.user.families[0]);
-        localStorage.setItem('kutumbos_selected_family', JSON.stringify(foundUser.user.families[0]));
+      // Auto-select family if only one (but not for super admin)
+      if (dummyUser.user.role !== 'super_admin' && dummyUser.user.families.length === 1) {
+        setSelectedFamily(dummyUser.user.families[0]);
+        localStorage.setItem('kutumbos_selected_family', JSON.stringify(dummyUser.user.families[0]));
       }
       
-      return { success: true };
+      return { success: true, user: dummyUser.user };
     }
-
-    return { success: false, error: 'Incorrect details. Please try again.' };
+    
+    return { success: false, error: 'Invalid credentials. Try: super.admin@kutumb.com / Qwerty@123' };
   };
 
   const logout = () => {
+    // For demo deployment - just clear local storage
     setUser(null);
     setSelectedFamily(null);
     localStorage.removeItem('kutumbos_user');

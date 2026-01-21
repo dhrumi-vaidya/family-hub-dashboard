@@ -33,6 +33,7 @@ const adminNavItems = [
   { title: 'Platform Limits', url: '/super-admin/limits', icon: Gauge },
 ];
 
+// Super Admin Sidebar Component
 export function SuperAdminSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
@@ -46,14 +47,14 @@ export function SuperAdminSidebar() {
         to={item.url}
         className={cn(
           'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
-          'hover:bg-slate-800/60',
+          'hover:bg-accent',
           isActive 
-            ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 border-l-2 border-amber-400' 
-            : 'text-slate-400 hover:text-slate-200',
+            ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-600 dark:text-amber-400 border-l-2 border-amber-500' 
+            : 'text-muted-foreground hover:text-foreground',
           collapsed && 'justify-center px-2'
         )}
       >
-        <Icon className={cn('h-5 w-5 shrink-0', isActive && 'text-amber-400')} />
+        <Icon className={cn('h-5 w-5 shrink-0', isActive && 'text-amber-600 dark:text-amber-400')} />
         {!collapsed && <span>{item.title}</span>}
       </NavLink>
     );
@@ -64,7 +65,7 @@ export function SuperAdminSidebar() {
           <TooltipTrigger asChild>
             {linkContent}
           </TooltipTrigger>
-          <TooltipContent side="right" className="bg-slate-800 border-slate-700">
+          <TooltipContent side="right" className="bg-popover border">
             {item.title}
           </TooltipContent>
         </Tooltip>
@@ -77,13 +78,13 @@ export function SuperAdminSidebar() {
   return (
     <div 
       className={cn(
-        'flex flex-col border-r border-slate-800 bg-slate-950 transition-all duration-300',
+        'flex flex-col border-r bg-card transition-all duration-300',
         collapsed ? 'w-16' : 'w-64'
       )}
     >
       {/* Header */}
       <div className={cn(
-        'flex items-center gap-3 p-4 border-b border-slate-800',
+        'flex items-center gap-3 p-4 border-b',
         collapsed && 'justify-center'
       )}>
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-amber-500/20">
@@ -91,8 +92,8 @@ export function SuperAdminSidebar() {
         </div>
         {!collapsed && (
           <div>
-            <h1 className="text-lg font-bold text-white">KutumbOS</h1>
-            <p className="text-xs text-amber-400 font-medium">Super Admin</p>
+            <h1 className="text-lg font-bold text-foreground">KutumbOS</h1>
+            <p className="text-xs text-amber-500 font-medium">Super Admin</p>
           </div>
         )}
       </div>
@@ -103,10 +104,10 @@ export function SuperAdminSidebar() {
           <NavItem key={item.url} item={item} />
         ))}
         
-        <Separator className="my-4 bg-slate-800" />
+        <Separator className="my-4" />
         
         {!collapsed && (
-          <p className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          <p className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Admin Only
           </p>
         )}
@@ -117,13 +118,13 @@ export function SuperAdminSidebar() {
       </div>
 
       {/* Collapse Toggle */}
-      <div className="p-3 border-t border-slate-800">
+      <div className="p-3 border-t">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setCollapsed(!collapsed)}
           className={cn(
-            'w-full text-slate-400 hover:text-slate-200 hover:bg-slate-800',
+            'w-full text-muted-foreground hover:text-foreground hover:bg-accent',
             collapsed && 'px-2'
           )}
         >
@@ -140,3 +141,6 @@ export function SuperAdminSidebar() {
     </div>
   );
 }
+
+// Also export as default for compatibility
+export default SuperAdminSidebar;

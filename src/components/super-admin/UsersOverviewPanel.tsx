@@ -66,25 +66,25 @@ export function UsersOverviewPanel({
 }: UsersOverviewPanelProps) {
   if (isLoading) {
     return (
-      <Card className="border-slate-700/50 bg-slate-800/30">
+      <Card className="border-border bg-card">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg text-slate-200">Users Overview</CardTitle>
+          <CardTitle className="text-lg text-foreground">Users Overview</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="p-4 rounded-lg bg-slate-800/50 border border-slate-700/50">
+              <div key={i} className="p-4 rounded-lg bg-muted/30 border border-border">
                 <div className="flex items-center gap-3">
-                  <Skeleton className="h-10 w-10 rounded-lg bg-slate-700" />
+                  <Skeleton className="h-10 w-10 rounded-lg bg-muted" />
                   <div className="space-y-2">
-                    <Skeleton className="h-6 w-12 bg-slate-700" />
-                    <Skeleton className="h-3 w-20 bg-slate-700" />
+                    <Skeleton className="h-6 w-12 bg-muted" />
+                    <Skeleton className="h-3 w-20 bg-muted" />
                   </div>
                 </div>
               </div>
             ))}
           </div>
-          <Skeleton className="h-10 w-full mt-4 bg-slate-700" />
+          <Skeleton className="h-10 w-full mt-4 bg-muted" />
         </CardContent>
       </Card>
     );
@@ -93,14 +93,14 @@ export function UsersOverviewPanel({
   const totalUsers = stats.totalAdmins + stats.totalMembers;
 
   return (
-    <Card className="border-slate-700/50 bg-slate-800/30">
+    <Card className="border-border bg-card">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg text-slate-200 flex items-center gap-2">
-            <Users className="h-5 w-5 text-blue-400" />
+          <CardTitle className="text-lg text-foreground flex items-center gap-2">
+            <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             Users Overview
           </CardTitle>
-          <span className="text-sm text-slate-400">
+          <span className="text-sm text-muted-foreground">
             {totalUsers.toLocaleString()} total users
           </span>
         </div>
@@ -108,11 +108,11 @@ export function UsersOverviewPanel({
       <CardContent>
         {totalUsers === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="h-14 w-14 rounded-full bg-slate-700/50 flex items-center justify-center mb-3">
-              <Users className="h-7 w-7 text-slate-500" />
+            <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center mb-3">
+              <Users className="h-7 w-7 text-muted-foreground" />
             </div>
-            <p className="text-slate-300 font-medium">No users yet</p>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-foreground font-medium">No users yet</p>
+            <p className="text-sm text-muted-foreground mt-1">
               Users will appear when families register
             </p>
           </div>
@@ -126,7 +126,7 @@ export function UsersOverviewPanel({
                 <div
                   key={item.key}
                   className={cn(
-                    'p-4 rounded-lg border transition-colors hover:bg-slate-800/70',
+                    'p-4 rounded-lg border transition-colors hover:bg-muted/50',
                     item.bgColor,
                     item.borderColor
                   )}
@@ -136,8 +136,8 @@ export function UsersOverviewPanel({
                       <Icon className={cn('h-5 w-5', item.color)} />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-slate-100">{value.toLocaleString()}</p>
-                      <p className="text-xs text-slate-400">{item.label}</p>
+                      <p className="text-2xl font-bold text-foreground">{value.toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">{item.label}</p>
                     </div>
                   </div>
                 </div>
@@ -148,7 +148,7 @@ export function UsersOverviewPanel({
 
         <Button
           variant="outline"
-          className="w-full mt-4 text-blue-400 border-blue-500/30 hover:bg-blue-500/10 hover:text-blue-300"
+          className="w-full mt-4 text-blue-600 border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:border-blue-500/30 dark:hover:bg-blue-500/10 dark:hover:text-blue-300"
           onClick={onViewAllUsers}
         >
           View All Users

@@ -118,18 +118,18 @@ export function AlertsActionPanel({
 
   if (isLoading) {
     return (
-      <Card className="border-slate-700/50 bg-slate-800/30">
+      <Card className="border-border bg-card">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg text-slate-200">Alerts & Action Required</CardTitle>
+          <CardTitle className="text-lg text-foreground">Alerts & Action Required</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="p-4 rounded-lg bg-slate-800/50 border border-slate-700/50">
+            <div key={i} className="p-4 rounded-lg bg-muted/30 border border-border">
               <div className="flex items-start gap-3">
-                <Skeleton className="h-10 w-10 rounded-lg shrink-0 bg-slate-700" />
+                <Skeleton className="h-10 w-10 rounded-lg shrink-0 bg-muted" />
                 <div className="flex-1 space-y-2">
-                  <Skeleton className="h-4 w-3/4 bg-slate-700" />
-                  <Skeleton className="h-3 w-full bg-slate-700" />
+                  <Skeleton className="h-4 w-3/4 bg-muted" />
+                  <Skeleton className="h-3 w-full bg-muted" />
                 </div>
               </div>
             </div>
@@ -144,19 +144,19 @@ export function AlertsActionPanel({
       'border transition-all',
       hasAlerts 
         ? criticalCount > 0 
-          ? 'border-red-500/50 bg-red-500/5 shadow-lg shadow-red-500/10' 
-          : 'border-amber-500/50 bg-amber-500/5'
-        : 'border-slate-700/50 bg-slate-800/30'
+          ? 'border-red-500/50 bg-red-50 dark:bg-red-950/20 shadow-lg shadow-red-500/10' 
+          : 'border-amber-500/50 bg-amber-50 dark:bg-amber-950/20'
+        : 'border-border bg-card'
     )}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className={cn(
             'text-lg flex items-center gap-2',
-            hasAlerts ? 'text-slate-100' : 'text-slate-200'
+            hasAlerts ? 'text-foreground' : 'text-foreground'
           )}>
             <AlertTriangle className={cn(
               'h-5 w-5',
-              criticalCount > 0 ? 'text-red-400' : hasAlerts ? 'text-amber-400' : 'text-slate-400'
+              criticalCount > 0 ? 'text-red-600 dark:text-red-400' : hasAlerts ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'
             )} />
             Alerts & Action Required
           </CardTitle>
@@ -165,8 +165,8 @@ export function AlertsActionPanel({
               variant="outline" 
               className={cn(
                 criticalCount > 0 
-                  ? 'bg-red-500/20 text-red-300 border-red-500/30' 
-                  : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                  ? 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900 dark:text-red-200 dark:border-red-500/30' 
+                  : 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900 dark:text-amber-200 dark:border-amber-500/30'
               )}
             >
               {alerts.length} {alerts.length === 1 ? 'alert' : 'alerts'}
@@ -177,11 +177,11 @@ export function AlertsActionPanel({
       <CardContent>
         {!hasAlerts ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="h-16 w-16 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4">
-              <CheckCircle2 className="h-8 w-8 text-emerald-400" />
+            <div className="h-16 w-16 rounded-full bg-emerald-100 dark:bg-emerald-500/10 flex items-center justify-center mb-4">
+              <CheckCircle2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
             </div>
-            <p className="text-slate-300 font-medium">No alerts</p>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-foreground font-medium">No alerts</p>
+            <p className="text-sm text-muted-foreground mt-1">
               All systems are operating normally
             </p>
           </div>
@@ -208,14 +208,14 @@ export function AlertsActionPanel({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <p className="font-medium text-slate-200">{alert.title}</p>
-                          <p className="text-sm text-slate-400 mt-0.5">{alert.description}</p>
+                          <p className="font-medium text-foreground">{alert.title}</p>
+                          <p className="text-sm text-muted-foreground mt-0.5">{alert.description}</p>
                         </div>
                         <Badge variant="outline" className={severity.badge}>
                           {severity.label}
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-2 mt-2 text-xs text-slate-500">
+                      <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                         <span>{category.label}</span>
                         <span>•</span>
                         <span>{alert.affectedEntity}</span>
@@ -226,7 +226,7 @@ export function AlertsActionPanel({
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-slate-300 border-slate-600 hover:bg-slate-700"
+                          className="text-foreground border-border hover:bg-muted"
                           onClick={() => onViewAlert?.(alert)}
                         >
                           <Eye className="h-3.5 w-3.5 mr-1" />
@@ -243,7 +243,7 @@ export function AlertsActionPanel({
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="text-slate-400 hover:text-slate-200 hover:bg-slate-700"
+                          className="text-muted-foreground hover:text-foreground hover:bg-muted"
                           onClick={() => onDismissAlert?.(alert)}
                         >
                           <X className="h-3.5 w-3.5 mr-1" />
