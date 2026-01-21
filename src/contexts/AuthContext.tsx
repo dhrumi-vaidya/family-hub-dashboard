@@ -104,34 +104,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string; user?: User }> => {
-    try {
-      const response = await apiClient.login(email, password);
+    // For demo deployment - use mock authentication only
+    const dummyUser = dummyUsers.find(u => u.email === email && u.password === password);
+    
+    if (dummyUser) {
+      setUser(dummyUser.user);
+      localStorage.setItem('kutumbos_user', JSON.stringify(dummyUser.user));
       
-      if (response.success && response.user) {
-        setUser(response.user);
-        localStorage.setItem('kutumbos_user', JSON.stringify(response.user));
-        
-        // Auto-select family if only one (but not for super admin)
-        if (response.user.role !== 'super_admin' && response.user.families.length === 1) {
-          setSelectedFamily(response.user.families[0]);
-          localStorage.setItem('kutumbos_selected_family', JSON.stringify(response.user.families[0]));
-        }
-        
-        return { success: true, user: response.user };
+      // Auto-select family if only one (but not for super admin)
+      if (dummyUser.user.role !== 'super_admin' && dummyUser.user.families.length === 1) {
+        setSelectedFamily(dummyUser.user.families[0]);
+        localStorage.setItem('kutumbos_selected_family', JSON.stringify(dummyUser.user.families[0]));
       }
-
-      return { success: false, error: response.error || 'Login failed' };
-    } catch (error) {
-      console.error('Login error:', error);
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Login failed. Please try again.' 
-      };
+      
+      return { success: true, user: dummyUser.user };
     }
+    
+    return { success: false, error: 'Invalid credentials. Try: super.admin@kutumb.com / Qwerty@123' };
   };
 
   const logout = () => {
-    apiClient.logout();
+    // For demo deployment - just clear local storage
     setUser(null);
     setSelectedFamily(null);
     localStorage.removeItem('kutumbos_user');
