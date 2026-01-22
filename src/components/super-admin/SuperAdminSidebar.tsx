@@ -60,6 +60,14 @@ export function SuperAdminSidebar({ collapsed: externalCollapsed, onToggle }: Su
     }
   }, [isMobile, collapsed, externalCollapsed]);
 
+  // Auto-close sidebar on mobile when route changes
+  useEffect(() => {
+    if (isMobile && onToggle && externalCollapsed === false) {
+      // Close the sidebar when navigating on mobile (only if it's currently open)
+      onToggle();
+    }
+  }, [location.pathname, isMobile, onToggle, externalCollapsed]);
+
   const NavItem = ({ item }: { item: typeof mainNavItems[0] }) => {
     const isActive = location.pathname === item.url;
     const Icon = item.icon;

@@ -96,15 +96,15 @@ export function PlatformHealthPanel({
         </CardHeader>
         <CardContent className="space-y-3">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-muted/30">
-              <div className="flex items-center gap-3">
-                <Skeleton className="h-10 w-10 rounded-lg bg-muted" />
-                <div className="space-y-2">
+            <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 min-w-0">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <Skeleton className="h-10 w-10 rounded-lg bg-muted shrink-0" />
+                <div className="space-y-2 min-w-0 flex-1">
                   <Skeleton className="h-4 w-32 bg-muted" />
                   <Skeleton className="h-3 w-48 bg-muted" />
                 </div>
               </div>
-              <Skeleton className="h-6 w-16 rounded-full bg-muted" />
+              <Skeleton className="h-6 w-16 rounded-full bg-muted shrink-0" />
             </div>
           ))}
         </CardContent>
@@ -158,22 +158,22 @@ export function PlatformHealthPanel({
             <div
               key={item.id}
               className={cn(
-                'flex items-center justify-between p-4 rounded-lg border transition-colors',
+                'flex items-center justify-between p-4 rounded-lg border transition-colors min-w-0',
                 colors.bg,
                 colors.border,
                 'hover:bg-opacity-20'
               )}
             >
-              <div className="flex items-center gap-3">
-                <div className={cn('h-10 w-10 rounded-lg flex items-center justify-center', colors.bg)}>
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className={cn('h-10 w-10 rounded-lg flex items-center justify-center shrink-0', colors.bg)}>
                   <Icon className={cn('h-5 w-5', colors.text)} />
                 </div>
-                <div>
-                  <p className="font-medium text-foreground">{item.title}</p>
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-foreground truncate">{item.title}</p>
+                  <p className="text-sm text-muted-foreground truncate">{item.description}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 shrink-0">
                 <Badge variant="outline" className={colors.badge}>
                   {item.count} {item.count === 1 ? 'issue' : 'issues'}
                 </Badge>

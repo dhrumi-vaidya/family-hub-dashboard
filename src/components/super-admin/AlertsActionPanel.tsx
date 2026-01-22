@@ -207,11 +207,11 @@ export function AlertsActionPanel({
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="font-medium text-foreground">{alert.title}</p>
-                          <p className="text-sm text-muted-foreground mt-0.5">{alert.description}</p>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-foreground truncate">{alert.title}</p>
+                          <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">{alert.description}</p>
                         </div>
-                        <Badge variant="outline" className={severity.badge}>
+                        <Badge variant="outline" className={cn(severity.badge, 'shrink-0')}>
                           {severity.label}
                         </Badge>
                       </div>
