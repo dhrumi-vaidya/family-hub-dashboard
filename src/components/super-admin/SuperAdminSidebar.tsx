@@ -34,21 +34,31 @@ const adminNavItems = [
   { title: 'Platform Limits', url: '/super-admin/limits', icon: Gauge },
 ];
 
+interface SuperAdminSidebarProps {
+  collapsed?: boolean;
+  onToggle?: () => void;
+}
+
 // Super Admin Sidebar Component
-export function SuperAdminSidebar() {
+export function SuperAdminSidebar({ collapsed: externalCollapsed, onToggle }: SuperAdminSidebarProps = {}) {
   const isMobile = useIsMobile();
-  const [collapsed, setCollapsed] = useState(() => {
+  const location = useLocation();
+  
+  // Use external collapsed state if provided, otherwise use internal state
+  const [internalCollapsed, setInternalCollapsed] = useState(() => {
     // Start collapsed on mobile devices to prevent blocking content
     return isMobile;
   });
-  const location = useLocation();
+  
+  const collapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
+  const toggleCollapsed = onToggle || (() => setInternalCollapsed(!internalCollapsed));
 
-  // Update collapsed state when screen size changes
+  // Update collapsed state when screen size changes (only for internal state)
   useEffect(() => {
-    if (isMobile && !collapsed) {
-      setCollapsed(true);
+    if (externalCollapsed === undefined && isMobile && !collapsed) {
+      setInternalCollapsed(true);
     }
-  }, [isMobile, collapsed]);
+  }, [isMobile, collapsed, externalCollapsed]);
 
   const NavItem = ({ item }: { item: typeof mainNavItems[0] }) => {
     const isActive = location.pathname === item.url;
@@ -91,7 +101,12 @@ export function SuperAdminSidebar() {
     <div 
       className={cn(
         'flex flex-col border-r bg-card transition-all duration-300',
-        collapsed ? 'w-16' : 'w-64'
+        collapsed ? 'w-16' : 'w-64',
+        // Mobile positioning
+        isMobile ? cn(
+          'fixed left-0 top-0 z-50 h-full',
+          collapsed ? '-translate-x-full' : 'translate-x-0'
+        ) : 'relative'
       )}
     >
       {/* Header */}
@@ -134,7 +149,7 @@ export function SuperAdminSidebar() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={toggleCollapsed}
           className={cn(
             'w-full text-muted-foreground hover:text-foreground hover:bg-accent',
             collapsed && 'px-2'
