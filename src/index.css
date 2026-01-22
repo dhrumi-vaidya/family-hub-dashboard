@@ -5,6 +5,8 @@
 
 @tailwind base;
 @tailwind components;
+@tailwind utilities;
+
 @layer utilities {
   .line-clamp-2 {
     overflow: hidden;
