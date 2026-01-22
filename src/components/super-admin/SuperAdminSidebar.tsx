@@ -56,17 +56,8 @@ export function SuperAdminSidebar({ collapsed: externalCollapsed, onToggle }: Su
     const currentPathname = location.pathname;
     const prevPathname = prevPathnameRef.current;
     
-    console.log('SuperAdminSidebar effect:', { 
-      currentPathname, 
-      prevPathname, 
-      isMobile, 
-      externalCollapsed, 
-      hasOnToggle: !!onToggle 
-    });
-    
     // Only close if pathname actually changed and sidebar is open on mobile
     if (isMobile && onToggle && externalCollapsed === false && currentPathname !== prevPathname) {
-      console.log('Auto-closing sidebar due to navigation');
       onToggle();
     }
     

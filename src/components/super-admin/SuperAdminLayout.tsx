@@ -23,7 +23,6 @@ export function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
   }, [isMobile, sidebarCollapsed]);
 
   const toggleSidebar = () => {
-    console.log('toggleSidebar called, current state:', sidebarCollapsed);
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
