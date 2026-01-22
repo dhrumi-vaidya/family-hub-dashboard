@@ -53,6 +53,9 @@ export function SuperAdminSidebar({ collapsed: externalCollapsed, onToggle }: Su
   const collapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
   const toggleCollapsed = onToggle || (() => setInternalCollapsed(!internalCollapsed));
 
+  // Debug logging
+  console.log('SuperAdminSidebar render:', { isMobile, collapsed, externalCollapsed });
+
   // Update collapsed state when screen size changes (only for internal state)
   useEffect(() => {
     if (externalCollapsed === undefined && isMobile && !collapsed) {
@@ -103,9 +106,8 @@ export function SuperAdminSidebar({ collapsed: externalCollapsed, onToggle }: Su
         'flex flex-col border-r bg-card transition-all duration-300',
         // Mobile positioning
         isMobile ? cn(
-          'fixed left-0 top-0 z-50 h-full',
-          collapsed ? '-translate-x-full' : 'translate-x-0',
-          collapsed ? 'w-0' : 'w-64'
+          'fixed left-0 top-0 z-[60] h-full w-64',
+          collapsed ? '-translate-x-full' : 'translate-x-0'
         ) : cn(
           'relative',
           collapsed ? 'w-16' : 'w-64'

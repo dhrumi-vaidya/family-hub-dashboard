@@ -48,7 +48,10 @@ export function SuperAdminHeader({ onToggleSidebar }: SuperAdminHeaderProps) {
           <Button
             variant="ghost"
             size="icon"
-            onClick={onToggleSidebar}
+            onClick={() => {
+              console.log('Mobile menu button clicked');
+              onToggleSidebar?.();
+            }}
             className="shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent"
             aria-label="Toggle sidebar"
           >

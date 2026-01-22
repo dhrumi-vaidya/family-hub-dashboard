@@ -10,28 +10,33 @@ interface SuperAdminLayoutProps {
 
 export function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
   const isMobile = useIsMobile();
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    // Start collapsed on mobile devices to prevent blocking content
-    return isMobile;
-  });
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true); // Always start collapsed
 
-  // Update collapsed state when screen size changes
+  // Don't auto-collapse when switching to mobile if user has opened it
+  // Only auto-collapse when switching from mobile to desktop
   useEffect(() => {
-    if (isMobile && !sidebarCollapsed) {
-      setSidebarCollapsed(true);
+    // Only auto-collapse when switching from mobile to desktop
+    if (!isMobile && sidebarCollapsed) {
+      // On desktop, we might want to show the sidebar by default
+      // But for now, keep it collapsed until user interacts
     }
   }, [isMobile, sidebarCollapsed]);
 
   const toggleSidebar = () => {
+    console.log('Toggling sidebar from', sidebarCollapsed, 'to', !sidebarCollapsed);
+    console.log('isMobile:', isMobile);
     setSidebarCollapsed(!sidebarCollapsed);
   };
+
+  // Debug logging
+  console.log('SuperAdminLayout render:', { isMobile, sidebarCollapsed });
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
       {/* Mobile overlay */}
       {isMobile && !sidebarCollapsed && (
         <div
-          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
+          className="fixed inset-0 z-[55] bg-black/20 backdrop-blur-sm"
           onClick={() => setSidebarCollapsed(true)}
         />
       )}
