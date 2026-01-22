@@ -58,8 +58,11 @@ export function AdminSidebar() {
   const location = useLocation();
 
   return (
-    <aside className="w-64 border-r border-slate-200 bg-white">
-      <nav className="p-4 space-y-2">
+    <aside className="w-64 h-screen border-r border-slate-200 bg-white overflow-y-auto">
+      <div className="p-4">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">Admin Panel</h2>
+      </div>
+      <nav className="px-4 pb-4 space-y-2">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
