@@ -10,6 +10,14 @@
 /* KutumbOS Design System - Warm, Calm, Family-Centric */
 
 @layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground overflow-x-hidden;
+  }
+  
   :root {
     /* Enhanced Light Theme - Better Contrast */
     --background: 0 0% 100%;

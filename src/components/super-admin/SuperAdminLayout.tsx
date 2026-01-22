@@ -39,7 +39,7 @@ export function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
       <SuperAdminSidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <SuperAdminHeader onToggleSidebar={toggleSidebar} />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-background">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 bg-background">
           {children}
         </main>
       </div>

@@ -101,12 +101,15 @@ export function SuperAdminSidebar({ collapsed: externalCollapsed, onToggle }: Su
     <div 
       className={cn(
         'flex flex-col border-r bg-card transition-all duration-300',
-        collapsed ? 'w-16' : 'w-64',
         // Mobile positioning
         isMobile ? cn(
           'fixed left-0 top-0 z-50 h-full',
-          collapsed ? '-translate-x-full' : 'translate-x-0'
-        ) : 'relative'
+          collapsed ? '-translate-x-full' : 'translate-x-0',
+          collapsed ? 'w-0' : 'w-64'
+        ) : cn(
+          'relative',
+          collapsed ? 'w-16' : 'w-64'
+        )
       )}
     >
       {/* Header */}

@@ -156,15 +156,15 @@ export function FamiliesPreviewPanel({
         </CardHeader>
         <CardContent className="space-y-3">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-muted/30">
-              <div className="flex items-center gap-3">
-                <Skeleton className="h-10 w-10 rounded-lg bg-muted" />
-                <div className="space-y-2">
+            <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 min-w-0">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <Skeleton className="h-10 w-10 rounded-lg bg-muted shrink-0" />
+                <div className="space-y-2 min-w-0 flex-1">
                   <Skeleton className="h-4 w-28 bg-muted" />
                   <Skeleton className="h-3 w-40 bg-muted" />
                 </div>
               </div>
-              <Skeleton className="h-6 w-20 rounded-full bg-muted" />
+              <Skeleton className="h-6 w-20 rounded-full bg-muted shrink-0" />
             </div>
           ))}
         </CardContent>
@@ -224,28 +224,28 @@ export function FamiliesPreviewPanel({
                 return (
                   <div
                     key={family.id}
-                    className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border hover:bg-muted/50 transition-colors"
+                    className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-border hover:bg-muted/50 transition-colors min-w-0"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
                         <Building2 className="h-5 w-5 text-muted-foreground" />
                       </div>
-                      <div>
-                        <p className="font-medium text-foreground">{family.name}</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-foreground truncate">{family.name}</p>
                         <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1">
+                          <span className="flex items-center gap-1 shrink-0">
                             <UserCog className="h-3.5 w-3.5" />
                             {family.adminCount} Admin{family.adminCount !== 1 ? 's' : ''}
                           </span>
-                          <span className="flex items-center gap-1">
+                          <span className="flex items-center gap-1 shrink-0">
                             <Users className="h-3.5 w-3.5" />
                             {family.memberCount} Member{family.memberCount !== 1 ? 's' : ''}
                           </span>
-                          <span>Created {family.createdAt}</span>
+                          <span className="truncate">Created {family.createdAt}</span>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 shrink-0">
                       <Badge variant="outline" className={cn('flex items-center gap-1', status.className)}>
                         <StatusIcon className="h-3 w-3" />
                         {status.label}
