@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -43,29 +43,35 @@ interface SuperAdminSidebarProps {
 export function SuperAdminSidebar({ collapsed: externalCollapsed, onToggle }: SuperAdminSidebarProps = {}) {
   const isMobile = useIsMobile();
   const location = useLocation();
+  const prevPathnameRef = useRef(location.pathname);
   
   // Use external collapsed state if provided, otherwise use internal state
-  const [internalCollapsed, setInternalCollapsed] = useState(() => {
-    // Start collapsed on mobile devices to prevent blocking content
-    return isMobile;
-  });
+  const [internalCollapsed, setInternalCollapsed] = useState(true);
   
   const collapsed = externalCollapsed !== undefined ? externalCollapsed : internalCollapsed;
   const toggleCollapsed = onToggle || (() => setInternalCollapsed(!internalCollapsed));
 
-  // Update collapsed state when screen size changes (only for internal state)
+  // Auto-close sidebar on mobile when route changes (only on actual navigation)
   useEffect(() => {
-    if (externalCollapsed === undefined && isMobile && !collapsed) {
-      setInternalCollapsed(true);
-    }
-  }, [isMobile, collapsed, externalCollapsed]);
-
-  // Auto-close sidebar on mobile when route changes
-  useEffect(() => {
-    if (isMobile && onToggle && externalCollapsed === false) {
-      // Close the sidebar when navigating on mobile (only if it's currently open)
+    const currentPathname = location.pathname;
+    const prevPathname = prevPathnameRef.current;
+    
+    console.log('SuperAdminSidebar effect:', { 
+      currentPathname, 
+      prevPathname, 
+      isMobile, 
+      externalCollapsed, 
+      hasOnToggle: !!onToggle 
+    });
+    
+    // Only close if pathname actually changed and sidebar is open on mobile
+    if (isMobile && onToggle && externalCollapsed === false && currentPathname !== prevPathname) {
+      console.log('Auto-closing sidebar due to navigation');
       onToggle();
     }
+    
+    // Update the ref for next comparison
+    prevPathnameRef.current = currentPathname;
   }, [location.pathname, isMobile, onToggle, externalCollapsed]);
 
   const NavItem = ({ item }: { item: typeof mainNavItems[0] }) => {
