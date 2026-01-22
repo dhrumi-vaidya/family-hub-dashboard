@@ -23,13 +23,8 @@ export function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
   }, [isMobile, sidebarCollapsed]);
 
   const toggleSidebar = () => {
-    console.log('Toggling sidebar from', sidebarCollapsed, 'to', !sidebarCollapsed);
-    console.log('isMobile:', isMobile);
     setSidebarCollapsed(!sidebarCollapsed);
   };
-
-  // Debug logging
-  console.log('SuperAdminLayout render:', { isMobile, sidebarCollapsed });
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
