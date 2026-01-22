@@ -16,7 +16,7 @@ export function MembersCard() {
       ctaPath="/members"
       delay={4}
     >
-      <div className="flex items-center gap-6">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
         {/* Total members - primary number */}
         <div>
           <p className="number-display-lg">{currentFamily.memberCount}</p>

@@ -69,8 +69,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
         {/* Main content */}
         <main className={cn(
-          'flex-1 p-6',
-          isMobile && 'pl-6' // Ensure content doesn't get hidden behind mobile menu button
+          'flex-1 p-4 sm:p-6',
+          isMobile && 'pl-4 sm:pl-6' // Ensure content doesn't get hidden behind mobile menu button
         )}>
           <div className="mx-auto max-w-7xl">
             {children}

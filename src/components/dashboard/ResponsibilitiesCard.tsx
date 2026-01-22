@@ -20,7 +20,7 @@ export function ResponsibilitiesCard() {
       ctaPath="/responsibilities"
       delay={3}
     >
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Pending confirmations */}
         <div className="rounded-lg bg-warning-light p-3">
           <div className="flex items-center gap-2 mb-1">

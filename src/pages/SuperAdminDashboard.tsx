@@ -44,7 +44,7 @@ function SuperAdminDashboardHome() {
       {/* KPI Cards */}
       <div className={cn(
         'grid gap-4',
-        mode === 'simple' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2 lg:grid-cols-4'
+        mode === 'simple' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
       )}>
         <SystemKPICard
           title="Total Families"

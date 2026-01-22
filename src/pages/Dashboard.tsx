@@ -116,7 +116,7 @@ export default function Dashboard() {
               {/* Charts Section - Consistent spacing */}
               <div className={cn(
                 'grid gap-4 lg:gap-6',
-                mode === 'simple' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2'
+                mode === 'simple' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'
               )}>
                 <ExpenseChart />
                 <BudgetChart />
@@ -132,7 +132,7 @@ export default function Dashboard() {
           {/* Personal Charts */}
           <div className={cn(
             'grid gap-4 lg:gap-6',
-            mode === 'simple' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2'
+            mode === 'simple' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'
           )}>
             <ExpenseChart personal />
             <BudgetChart personal />
@@ -141,7 +141,7 @@ export default function Dashboard() {
           {/* Personal Cards */}
           <div className={cn(
             'grid gap-4 lg:gap-6',
-            mode === 'simple' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2'
+            mode === 'simple' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'
           )}>
             <PersonalTasksCard />
             <PersonalHealthCard />

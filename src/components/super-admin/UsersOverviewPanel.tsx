@@ -71,7 +71,7 @@ export function UsersOverviewPanel({
           <CardTitle className="text-lg text-foreground">Users Overview</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="p-4 rounded-lg bg-muted/30 border border-border">
                 <div className="flex items-center gap-3">
@@ -117,7 +117,7 @@ export function UsersOverviewPanel({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {statItems.map((item) => {
               const Icon = item.icon;
               const value = stats[item.key];

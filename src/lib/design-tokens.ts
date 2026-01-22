@@ -63,11 +63,11 @@ export const designTokens = {
     },
     grid: {
       simple: {
-        cols: 'grid-cols-1 md:grid-cols-2',
+        cols: 'grid-cols-1 sm:grid-cols-2',
         gap: 'gap-6',
       },
       fast: {
-        cols: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+        cols: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
         gap: 'gap-4',
       },
     },
