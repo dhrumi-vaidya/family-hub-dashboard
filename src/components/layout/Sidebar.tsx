@@ -12,6 +12,8 @@ import {
   Home,
   X,
   User,
+  Shield,
+  UserPlus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApp } from '@/contexts/AppContext';
@@ -32,16 +34,18 @@ const navItems: NavItem[] = [
   { icon: Heart, label: 'Health Records', path: '/health' },
   { icon: CheckSquare, label: 'Responsibilities', path: '/responsibilities' },
   { icon: Users, label: 'Members', path: '/members', adminOnly: true },
+  { icon: UserPlus, label: 'Invite Members', path: '/invite-members', adminOnly: true },
   { icon: Settings, label: 'Settings', path: '/settings' },
   { icon: User, label: 'Profile', path: '/profile' },
   { icon: FileText, label: 'Audit Logs', path: '/audit-logs', adminOnly: true },
+  { icon: Shield, label: 'Permissions Demo', path: '/permissions-demo' },
 ];
 
 export function Sidebar() {
   const { mode, sidebarCollapsed, setSidebarCollapsed } = useApp();
-  const { user } = useAuth();
+  const { user, selectedFamily } = useAuth();
   const location = useLocation();
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = selectedFamily?.role === 'FAMILY_ADMIN';
 
   const [isDesktop, setIsDesktop] = useState(() => {
     if (typeof window === 'undefined') return true;

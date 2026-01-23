@@ -27,6 +27,16 @@ import AdminFamilyManagement from "./pages/admin/AdminFamilyManagement";
 import AdminUserManagement from "./pages/admin/AdminUserManagement";
 import AdminConfiguration from "./pages/admin/AdminConfiguration";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
+import PermissionsDemo from "./pages/PermissionsDemo";
+import AuthDebug from "./pages/AuthDebug";
+import AuthTest from "./pages/AuthTest";
+import NewLogin from "./pages/NewLogin";
+import NewRegister from "./pages/NewRegister";
+import NewFamilySelect from "./pages/NewFamilySelect";
+import TestPage from "./pages/TestPage";
+import SimpleRegister from "./pages/SimpleRegister";
+import InviteMembers from "./pages/InviteMembers";
+import AuthStatus from "./pages/AuthStatus";
 
 const queryClient = new QueryClient();
 
@@ -44,7 +54,7 @@ function ProtectedRoute({ children, adminOnly = false, superAdminOnly = false }:
   }
 
   // Super Admin bypass: Skip family selection and mode selection
-  if (user?.role === 'super_admin') {
+  if (user?.globalRole === 'SUPER_ADMIN') {
     if (superAdminOnly) {
       return <>{children}</>;
     }
@@ -52,9 +62,15 @@ function ProtectedRoute({ children, adminOnly = false, superAdminOnly = false }:
     return <Navigate to="/super-admin" replace />;
   }
 
-  // Regular users (admin/member) need family and mode selection
+  // Regular users (family members) need family and mode selection
   if (!selectedFamily && user && user.families.length > 1) {
     return <Navigate to="/select-family" replace />;
+  }
+
+  // Auto-select family if user has only one family
+  if (!selectedFamily && user && user.families.length === 1) {
+    // This should be handled by AuthContext, but as fallback
+    return <Navigate to="/select-mode" replace />;
   }
 
   if (!isModeSelected) {
@@ -65,8 +81,12 @@ function ProtectedRoute({ children, adminOnly = false, superAdminOnly = false }:
     return <Navigate to="/" replace />;
   }
 
-  if (adminOnly && user?.role !== 'admin') {
-    return <Navigate to="/member-dashboard" replace />;
+  // Check family admin permissions
+  if (adminOnly) {
+    const userFamilyRole = selectedFamily?.role;
+    if (userFamilyRole !== 'FAMILY_ADMIN') {
+      return <Navigate to="/member-dashboard" replace />;
+    }
   }
 
   return <>{children}</>;
@@ -80,7 +100,7 @@ function SuperAdminRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-  if (user?.role !== 'super_admin') {
+  if (user?.globalRole !== 'SUPER_ADMIN') {
     return <Navigate to="/" replace />;
   }
 
@@ -94,13 +114,14 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
   if (isAuthenticated) {
     // Super Admin goes directly to super admin dashboard
-    if (user?.role === 'super_admin') {
+    if (user?.globalRole === 'SUPER_ADMIN') {
       return <Navigate to="/super-admin" replace />;
     }
     
     // Regular users go to their respective dashboards
     if (isModeSelected) {
-      return <Navigate to={user?.role === 'admin' ? '/' : '/member-dashboard'} replace />;
+      const userFamilyRole = user?.families[0]?.role;
+      return <Navigate to={userFamilyRole === 'FAMILY_ADMIN' ? '/' : '/member-dashboard'} replace />;
     }
   }
 
@@ -108,17 +129,38 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 }
 
 const AppRoutes = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isInitializing } = useAuth();
   const { isModeSelected } = useApp();
-  const showLayout = isAuthenticated && isModeSelected && user?.role !== 'super_admin';
-  const showSuperAdminLayout = isAuthenticated && user?.role === 'super_admin';
+  const showLayout = isAuthenticated && isModeSelected && user?.globalRole !== 'SUPER_ADMIN';
+  const showSuperAdminLayout = isAuthenticated && user?.globalRole === 'SUPER_ADMIN';
+
+  // Show loading state while initializing authentication
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Routes>
       {/* Public Routes */}
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+      <Route path="/new-login" element={<PublicRoute><NewLogin /></PublicRoute>} />
+      <Route path="/new-register" element={<PublicRoute><NewRegister /></PublicRoute>} />
+      <Route path="/simple-register" element={<PublicRoute><SimpleRegister /></PublicRoute>} />
+      <Route path="/new-family-select" element={<NewFamilySelect />} />
       <Route path="/select-family" element={<SelectFamily />} />
       <Route path="/select-mode" element={<SelectMode />} />
+      <Route path="/auth-debug" element={<AuthDebug />} />
+      <Route path="/auth-test" element={<AuthTest />} />
+      <Route path="/permissions-demo" element={<PermissionsDemo />} />
+      <Route path="/auth-status" element={<AuthStatus />} />
+      <Route path="/test" element={<TestPage />} />
 
       {/* Super Admin Routes */}
       <Route path="/super-admin/*" element={<SuperAdminRoute><SuperAdminDashboard /></SuperAdminRoute>} />
@@ -136,12 +178,15 @@ const AppRoutes = () => {
                 <Route path="/health" element={<ProtectedRoute><Health /></ProtectedRoute>} />
                 <Route path="/responsibilities" element={<ProtectedRoute><Responsibilities /></ProtectedRoute>} />
                 <Route path="/members" element={<ProtectedRoute adminOnly><Members /></ProtectedRoute>} />
+                <Route path="/invite-members" element={<ProtectedRoute adminOnly><InviteMembers /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="/audit-logs" element={<ProtectedRoute adminOnly><AuditLogs /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Layout>
+          ) : showSuperAdminLayout ? (
+            <Navigate to="/super-admin" replace />
           ) : (
             <Navigate to="/login" replace />
           )

@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 
@@ -10,7 +11,7 @@ import authRoutes from './routes/auth';
 dotenv.config();
 
 const app = express();
-const PORT = parseInt(process.env.PORT || '5001', 10);
+const PORT = parseInt(process.env.PORT || '5003', 10);
 
 // Security middleware
 app.use(helmet({
@@ -51,7 +52,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Family-ID'],
 }));
 
 // Rate limiting
@@ -74,6 +75,7 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
 
 // Handle preflight requests
 app.options('*', cors());

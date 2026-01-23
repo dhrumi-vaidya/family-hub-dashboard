@@ -54,7 +54,7 @@ export default function MemberDashboard() {
           "text-foreground font-semibold",
           isSimpleMode ? "text-2xl sm:text-3xl" : "text-xl sm:text-2xl"
         )}>
-          Welcome, {user.name.split(' ')[0]}
+          Welcome, {user.email.split('@')[0]}
         </h1>
         <p className={cn(
           "mt-1 text-muted-foreground",

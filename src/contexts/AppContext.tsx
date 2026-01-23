@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { useAuth, UserRole } from './AuthContext';
 
 type UXMode = 'simple' | 'fast';
 
@@ -11,6 +12,7 @@ interface Family {
 interface AppContextType {
   mode: UXMode;
   setMode: (mode: UXMode) => void;
+  canChangeMode: boolean; // Whether user can change UI mode
   currentFamily: Family;
   setCurrentFamily: (family: Family) => void;
   families: Family[];
@@ -38,27 +40,58 @@ const defaultFamilies: Family[] = [
 
 const ONBOARDING_KEY = 'kutumbos_onboarding_complete';
 const DISMISSED_HINTS_KEY = 'kutumbos_dismissed_hints';
+const MODE_SELECTED_KEY = 'kutumbos_mode_selected';
+
+// Determine if user can change UI mode based on role
+const canUserChangeMode = (role: UserRole | undefined): boolean => {
+  if (!role) return false;
+  
+  // These roles are forced into Simple Mode
+  const forcedSimpleRoles: UserRole[] = ['SENIOR', 'TEEN', 'CHILD', 'EMERGENCY'];
+  return !forcedSimpleRoles.includes(role);
+};
+
+// Determine default mode based on user role
+const getDefaultModeForRole = (role: UserRole | undefined): UXMode => {
+  if (!role) return 'simple';
+  
+  // These roles default to Simple Mode
+  const simpleRoles: UserRole[] = ['SENIOR', 'TEEN', 'CHILD', 'EMERGENCY'];
+  return simpleRoles.includes(role) ? 'simple' : 'fast';
+};
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const MODE_SELECTED_KEY = 'kutumbos_mode_selected';
-
 export function AppProvider({ children }: { children: ReactNode }) {
+  const { user, selectedFamily } = useAuth();
+  
+  // Determine user's role in current family
+  const userRole = selectedFamily?.role || (user?.globalRole === 'SUPER_ADMIN' ? 'SUPER_ADMIN' as UserRole : undefined);
+  
   const [mode, setModeState] = useState<UXMode>(() => {
+    // Check if user can change mode
+    if (!canUserChangeMode(userRole)) {
+      return getDefaultModeForRole(userRole);
+    }
+    
+    // For users who can change mode, check localStorage
     const stored = localStorage.getItem('kutumbos_mode');
-    return (stored as UXMode) || 'simple';
+    return (stored as UXMode) || getDefaultModeForRole(userRole);
   });
+
   const [currentFamily, setCurrentFamily] = useState<Family>(defaultFamilies[0]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     // On smaller screens we start with the sidebar closed so it doesn't block content.
     if (typeof window === 'undefined') return false;
     return window.innerWidth < 1024;
   });
+  
   // Mode selected state - reactive version
   const [isModeSelected, setIsModeSelectedState] = useState(() => {
     const stored = localStorage.getItem(MODE_SELECTED_KEY);
     return stored === 'true';
   });
+  
   // Onboarding state - check localStorage
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(() => {
     const stored = localStorage.getItem(ONBOARDING_KEY);
@@ -76,11 +109,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return stored ? JSON.parse(stored) : [];
   });
 
-  // Wrapper to persist mode selection
+  // Enforce mode based on user role
+  useEffect(() => {
+    if (userRole) {
+      const canChange = canUserChangeMode(userRole);
+      if (!canChange) {
+        const requiredMode = getDefaultModeForRole(userRole);
+        if (mode !== requiredMode) {
+          setModeState(requiredMode);
+        }
+      }
+    }
+  }, [userRole, mode]);
+
+  // Wrapper to persist mode selection (only if user can change mode)
   const setMode = useCallback((newMode: UXMode) => {
+    if (!canUserChangeMode(userRole)) {
+      console.warn('User role does not allow mode changes');
+      return;
+    }
+    
     setModeState(newMode);
     localStorage.setItem('kutumbos_mode', newMode);
-  }, []);
+  }, [userRole]);
 
   // Wrapper to persist mode selected state
   const setModeSelected = useCallback((selected: boolean) => {
@@ -112,6 +163,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       value={{
         mode,
         setMode,
+        canChangeMode: canUserChangeMode(userRole),
         currentFamily,
         setCurrentFamily,
         families: defaultFamilies,

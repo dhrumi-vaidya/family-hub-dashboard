@@ -21,6 +21,12 @@ export default function SelectMode() {
       return;
     }
 
+    // Super admins should go directly to super admin dashboard
+    if (user?.globalRole === 'SUPER_ADMIN') {
+      navigate('/super-admin');
+      return;
+    }
+
     if (!selectedFamily) {
       navigate('/select-family');
       return;

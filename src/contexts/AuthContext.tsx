@@ -1,140 +1,153 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { apiClient } from '@/lib/api';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { apiClient, TokenStorage } from '@/lib/api';
 
-export type UserRole = 'admin' | 'member' | 'super_admin';
+// Updated role system to match backend
+export type UserRole = 'FAMILY_ADMIN' | 'ADULT' | 'SENIOR' | 'TEEN' | 'CHILD' | 'EMERGENCY';
 
 export interface Family {
   id: string;
   name: string;
-  memberCount: number;
+  role: UserRole; // User's role in this family
+  createdAt: Date;
 }
 
 export interface User {
   id: string;
-  name: string;
   email: string;
-  role: UserRole;
+  globalRole: 'SUPER_ADMIN' | 'USER';
+  createdAt: Date;
+  lastLogin: Date | null;
   families: Family[];
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  isInitializing: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string; user?: User }>;
   logout: () => void;
   selectedFamily: Family | null;
   setSelectedFamily: (family: Family) => void;
+  accessToken: string | null;
+  refreshToken: () => Promise<boolean>;
 }
-
-// Dummy users for demonstration
-const dummyUsers: { email: string; password: string; user: User }[] = [
-  {
-    email: 'super.admin@kutumb.com',
-    password: 'Qwerty@123',
-    user: {
-      id: '0',
-      name: 'System Administrator',
-      email: 'super.admin@kutumb.com',
-      role: 'super_admin',
-      families: [],
-    },
-  },
-  {
-    email: 'rahul@sharma.com',
-    password: 'password123',
-    user: {
-      id: '1',
-      name: 'Rahul Sharma',
-      email: 'rahul@sharma.com',
-      role: 'admin',
-      families: [
-        { id: '1', name: 'Sharma Family', memberCount: 8 },
-        { id: '2', name: 'Verma Family', memberCount: 5 },
-      ],
-    },
-  },
-  {
-    email: 'sunita@sharma.com',
-    password: 'password123',
-    user: {
-      id: '2',
-      name: 'Sunita Sharma',
-      email: 'sunita@sharma.com',
-      role: 'member',
-      families: [{ id: '1', name: 'Sharma Family', memberCount: 8 }],
-    },
-  },
-  {
-    email: '9876543210',
-    password: 'password123',
-    user: {
-      id: '1',
-      name: 'Rahul Sharma',
-      email: 'rahul@sharma.com',
-      role: 'admin',
-      families: [
-        { id: '1', name: 'Sharma Family', memberCount: 8 },
-        { id: '2', name: 'Verma Family', memberCount: 5 },
-      ],
-    },
-  },
-  {
-    email: '9876543211',
-    password: 'password123',
-    user: {
-      id: '2',
-      name: 'Sunita Sharma',
-      email: 'sunita@sharma.com',
-      role: 'member',
-      families: [{ id: '1', name: 'Sharma Family', memberCount: 8 }],
-    },
-  },
-];
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    const stored = localStorage.getItem('kutumbos_user');
-    return stored ? JSON.parse(stored) : null;
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [selectedFamily, setSelectedFamily] = useState<Family | null>(() => {
     const stored = localStorage.getItem('kutumbos_selected_family');
     return stored ? JSON.parse(stored) : null;
   });
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string; user?: User }> => {
-    // For demo deployment - use mock authentication only
-    const dummyUser = dummyUsers.find(u => u.email === email && u.password === password);
-    
-    if (dummyUser) {
-      setUser(dummyUser.user);
-      localStorage.setItem('kutumbos_user', JSON.stringify(dummyUser.user));
-      
-      // Auto-select family if only one (but not for super admin)
-      if (dummyUser.user.role !== 'super_admin' && dummyUser.user.families.length === 1) {
-        setSelectedFamily(dummyUser.user.families[0]);
-        localStorage.setItem('kutumbos_selected_family', JSON.stringify(dummyUser.user.families[0]));
+  // Auto-refresh token on app start
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        // Only try to refresh if we don't already have a user
+        if (!user) {
+          const refreshed = await apiClient.refreshToken();
+          if (refreshed) {
+            // Get user profile
+            const userResponse = await apiClient.getCurrentUser();
+            if (userResponse.success) {
+              // Get families
+              const familiesResponse = await apiClient.getUserFamilies();
+              const userWithFamilies = {
+                ...userResponse.user,
+                families: familiesResponse.families || []
+              };
+              setUser(userWithFamilies);
+              
+              // Restore selected family if valid
+              if (selectedFamily) {
+                const validFamily = userWithFamilies.families.find((f: Family) => f.id === selectedFamily.id);
+                if (validFamily) {
+                  setSelectedFamily(validFamily);
+                  apiClient.setFamilyContext(validFamily.id);
+                } else {
+                  setSelectedFamily(null);
+                  localStorage.removeItem('kutumbos_selected_family');
+                }
+              }
+            }
+          }
+        }
+      } catch (error) {
+        // Silently handle auth initialization failures
+        // This is normal for first-time visitors
+        setUser(null);
+        setSelectedFamily(null);
+        localStorage.removeItem('kutumbos_selected_family');
+      } finally {
+        setIsInitializing(false);
       }
-      
-      return { success: true, user: dummyUser.user };
+    };
+
+    initAuth();
+  }, []); // Remove selectedFamily dependency to avoid loops
+
+  // Update API client family context when family changes
+  useEffect(() => {
+    if (selectedFamily) {
+      apiClient.setFamilyContext(selectedFamily.id);
+    } else {
+      apiClient.setFamilyContext(null);
     }
-    
-    return { success: false, error: 'Invalid credentials. Try: super.admin@kutumb.com / Qwerty@123' };
+  }, [selectedFamily]);
+
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string; user?: User }> => {
+    try {
+      const response = await apiClient.login(email, password);
+
+      if (response.success) {
+        const userWithFamilies = {
+          ...response.user,
+          families: response.families || []
+        };
+        setUser(userWithFamilies);
+        
+        // Auto-select family if only one (but not for super admin)
+        if (response.user.globalRole !== 'SUPER_ADMIN' && response.families.length === 1) {
+          setSelectedFamily(response.families[0]);
+          localStorage.setItem('kutumbos_selected_family', JSON.stringify(response.families[0]));
+        }
+        
+        return { success: true, user: userWithFamilies };
+      } else {
+        return { success: false, error: response.error || 'Login failed' };
+      }
+    } catch (error: any) {
+      console.error('Login error:', error);
+      return { success: false, error: error.message || 'Network error. Please try again.' };
+    }
   };
 
-  const logout = () => {
-    // For demo deployment - just clear local storage
-    setUser(null);
-    setSelectedFamily(null);
-    localStorage.removeItem('kutumbos_user');
-    localStorage.removeItem('kutumbos_selected_family');
-    localStorage.removeItem('kutumbos_mode_selected');
+  const logout = async () => {
+    try {
+      await apiClient.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Clear state
+      setUser(null);
+      setSelectedFamily(null);
+      localStorage.removeItem('kutumbos_selected_family');
+      localStorage.removeItem('kutumbos_mode_selected');
+      apiClient.setFamilyContext(null);
+    }
+  };
+
+  const refreshTokenFn = async (): Promise<boolean> => {
+    return await apiClient.refreshToken();
   };
 
   const handleSetSelectedFamily = (family: Family) => {
     setSelectedFamily(family);
     localStorage.setItem('kutumbos_selected_family', JSON.stringify(family));
+    apiClient.setFamilyContext(family.id);
   };
 
   return (
@@ -142,10 +155,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         isAuthenticated: !!user,
+        isInitializing,
         login,
         logout,
         selectedFamily,
         setSelectedFamily: handleSetSelectedFamily,
+        accessToken: TokenStorage.getAccessToken(),
+        refreshToken: refreshTokenFn,
       }}
     >
       {children}

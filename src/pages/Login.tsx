@@ -39,9 +39,10 @@ export default function Login() {
 
     if (loginResult.success && loginResult.user) {
       // Redirect based on user role
-      if (loginResult.user.role === 'super_admin') {
+      if (loginResult.user.globalRole === 'SUPER_ADMIN') {
         navigate('/super-admin');
       } else {
+        // Regular users go through family selection flow
         navigate('/select-family');
       }
     } else {
@@ -142,6 +143,20 @@ export default function Login() {
                 )}
               </Button>
             </form>
+
+            {/* Registration Link */}
+            <div className="mt-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                Don't have an account?{' '}
+                <Button
+                  variant="link"
+                  className="p-0 h-auto text-primary hover:underline"
+                  onClick={() => navigate('/simple-register')}
+                >
+                  Create Family Account
+                </Button>
+              </p>
+            </div>
 
             <p className="text-center text-sm text-muted-foreground/80 mt-6 leading-relaxed">
               This is a family-only system.
