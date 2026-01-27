@@ -509,7 +509,8 @@ export class AuthService {
     familyId: string,
     roleToAssign: FamilyRole,
     createdBy: string,
-    expiresInHours: number = 24
+    expiresInHours: number = 24,
+    recipientEmail?: string
   ): Promise<string> {
     const token = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(Date.now() + expiresInHours * 60 * 60 * 1000);
@@ -519,7 +520,8 @@ export class AuthService {
       role_to_assign: roleToAssign,
       expires_at: expiresAt,
       token,
-      created_by: createdBy
+      created_by: createdBy,
+      recipient_email: recipientEmail || null
     });
 
     return token;
@@ -541,7 +543,8 @@ export class AuthService {
       familyName: family.name,
       roleToAssign: invite.role_to_assign,
       invitedBy: inviter.email,
-      expiresAt: invite.expires_at
+      expiresAt: invite.expires_at,
+      recipientEmail: invite.recipient_email
     };
   }
 

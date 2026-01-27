@@ -96,14 +96,11 @@ export default function InviteMembers() {
     setSuccess('');
     
     try {
-      const response = await apiClient.request('/auth/generate-invite', {
-        method: 'POST',
-        body: JSON.stringify({
-          roleToAssign: formData.role,
-          expiresInHours: parseInt(formData.expiresInHours),
-          recipientEmail: formData.email
-        })
-      });
+      const response = await apiClient.generateInvite(
+        formData.role,
+        parseInt(formData.expiresInHours),
+        formData.email
+      );
       
       if (response.success) {
         const inviteUrl = response.inviteUrl;
@@ -113,8 +110,8 @@ export default function InviteMembers() {
           setSuccess(`✅ Invitation email sent to ${formData.email}! They can also use the link below to join your family.`);
           toast.success(`Invitation email sent to ${formData.email}!`);
         } else {
-          setSuccess(`Invitation link generated! Share the link below with ${formData.email} to join your family.`);
-          toast.success('Invitation link generated!');
+          setSuccess(`📧 Email service not configured. Share the link below with ${formData.email} to join your family.`);
+          toast.success('Invitation link generated! Email service not configured - share the link manually.');
         }
         
         // Reset form
@@ -133,10 +130,38 @@ export default function InviteMembers() {
     }
   };
 
-  const copyInviteLink = () => {
+  const copyInviteLink = async () => {
     if (generatedInvite) {
-      navigator.clipboard.writeText(generatedInvite);
-      toast.success('Invite link copied to clipboard!');
+      try {
+        // Try modern clipboard API first
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(generatedInvite);
+          toast.success('Invite link copied to clipboard!');
+        } else {
+          // Fallback for older browsers or non-HTTPS contexts
+          const textArea = document.createElement('textarea');
+          textArea.value = generatedInvite;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-999999px';
+          textArea.style.top = '-999999px';
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          
+          try {
+            document.execCommand('copy');
+            toast.success('Invite link copied to clipboard!');
+          } catch (err) {
+            console.error('Fallback copy failed:', err);
+            toast.error('Could not copy to clipboard. Please copy the link manually.');
+          } finally {
+            document.body.removeChild(textArea);
+          }
+        }
+      } catch (err) {
+        console.error('Copy to clipboard failed:', err);
+        toast.error('Could not copy to clipboard. Please copy the link manually.');
+      }
     }
   };
 
@@ -275,6 +300,25 @@ export default function InviteMembers() {
                 <p>4. An invitation link will be generated</p>
                 <p>5. Share the link with them to join your family</p>
                 <p>6. They'll create their account and automatically join your family</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  Email Configuration
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm text-muted-foreground">
+                <p>📧 <strong>Email service is not configured</strong> - invitations will generate links that you can share manually.</p>
+                <p>To enable automatic email sending, configure SMTP settings in your server environment:</p>
+                <ul className="list-disc list-inside space-y-1 mt-2">
+                  <li>SMTP_HOST (e.g., smtp.gmail.com)</li>
+                  <li>SMTP_USER (your email address)</li>
+                  <li>SMTP_PASS (your app password)</li>
+                </ul>
+                <p className="text-xs mt-2">For Gmail, use an App Password instead of your regular password.</p>
               </CardContent>
             </Card>
           </CardContent>

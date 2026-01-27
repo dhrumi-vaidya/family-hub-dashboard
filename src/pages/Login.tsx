@@ -6,36 +6,31 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
-import { z } from 'zod';
-
-const loginSchema = z.object({
-  email: z.string().trim().min(1, { message: 'Please enter your mobile number or email' }),
-  password: z.string().min(1, { message: 'Please enter your password' }),
-});
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { loginSchema, type LoginFormData } from '@/lib/validations';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, user } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const form = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const handleSubmit = async (data: LoginFormData) => {
     setError('');
-
-    // Validate input
-    const result = loginSchema.safeParse({ email, password });
-    if (!result.success) {
-      setError(result.error.errors[0].message);
-      return;
-    }
-
     setIsLoading(true);
 
-    const loginResult = await login(email, password);
+    const loginResult = await login(data.email, data.password);
 
     if (loginResult.success && loginResult.user) {
       // Redirect based on user role
@@ -71,78 +66,89 @@ export default function Login() {
             <CardDescription>Manage family life, together.</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium">
-                  Mobile Number or Email
-                </Label>
-                <Input
-                  id="email"
-                  type="text"
-                  placeholder="Enter mobile number or email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="username"
-                  className="h-12 text-base"
-                  aria-describedby={error ? "login-error" : undefined}
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">
+                        Mobile Number or Email
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter mobile number or email"
+                          autoComplete="username"
+                          className="h-12 text-base"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium">
-                  Password
-                </Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="current-password"
-                    className="h-12 pr-12 text-base"
-                    aria-describedby={error ? "login-error" : undefined}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium">
+                        Password
+                      </FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="Enter password"
+                            autoComplete="current-password"
+                            className="h-12 pr-12 text-base"
+                            {...field}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10"
+                            onClick={() => setShowPassword(!showPassword)}
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                          >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {error && (
+                  <div 
+                    className="rounded-lg bg-destructive-light border border-destructive/20 p-3 text-sm text-destructive animate-fade-in"
+                    role="alert"
+                    aria-live="polite"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
-                </div>
-              </div>
-
-              {error && (
-                <div 
-                  id="login-error"
-                  className="rounded-lg bg-destructive-light border border-destructive/20 p-3 text-sm text-destructive animate-fade-in"
-                  role="alert"
-                  aria-live="polite"
-                >
-                  {error}
-                </div>
-              )}
-
-              <Button 
-                type="submit" 
-                className="w-full h-12 text-base font-medium" 
-                disabled={isLoading}
-                aria-describedby={isLoading ? "loading-status" : undefined}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    <span id="loading-status">Logging in...</span>
-                  </>
-                ) : (
-                  'Login'
+                    {error}
+                  </div>
                 )}
-              </Button>
-            </form>
+
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 text-base font-medium" 
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Logging in...
+                    </>
+                  ) : (
+                    'Login'
+                  )}
+                </Button>
+              </form>
+            </Form>
 
             {/* Registration Link */}
             <div className="mt-4 text-center">

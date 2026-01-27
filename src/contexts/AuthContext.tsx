@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } catch (error) {
         // Silently handle auth initialization failures
-        // This is normal for first-time visitors
+        // This is normal for first-time visitors or expired sessions
         setUser(null);
         setSelectedFamily(null);
         localStorage.removeItem('kutumbos_selected_family');

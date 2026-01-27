@@ -2,70 +2,52 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Eye, EyeOff, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { z } from 'zod';
+import { registerSchema, type RegisterFormData } from '@/lib/validations';
+
+// Extended schema for confirm password
+const extendedRegisterSchema = registerSchema.extend({
+  confirmPassword: z.string().min(1, 'Please confirm your password'),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+type ExtendedRegisterFormData = z.infer<typeof extendedRegisterSchema>;
 
 export default function SimpleRegister() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    familyName: ''
-  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (error) setError('');
-  };
+  const form = useForm<ExtendedRegisterFormData>({
+    resolver: zodResolver(extendedRegisterSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      confirmPassword: '',
+      familyName: '',
+    },
+  });
 
-  const validateForm = (): boolean => {
-    if (!formData.email || !formData.password || !formData.familyName) {
-      setError('All fields are required');
-      return false;
-    }
-    
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return false;
-    }
-    
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters');
-      return false;
-    }
-    
-    // Check password complexity
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
-    if (!passwordRegex.test(formData.password)) {
-      setError('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character');
-      return false;
-    }
-    
-    return true;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) return;
-    
+  const handleSubmit = async (data: ExtendedRegisterFormData) => {
     setIsLoading(true);
     setError('');
     
     try {
       const response = await apiClient.register(
-        formData.email,
-        formData.password,
-        formData.familyName
+        data.email,
+        data.password,
+        data.familyName
       );
       
       if (response.success) {
@@ -95,94 +77,117 @@ export default function SimpleRegister() {
         </CardHeader>
         
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Enter your email"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="familyName">Family Name</Label>
-              <Input
-                id="familyName"
-                name="familyName"
-                type="text"
-                value={formData.familyName}
-                onChange={handleInputChange}
-                placeholder="Enter your family name"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  placeholder="Enter your password"
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Password must contain at least 8 characters with uppercase, lowercase, number, and special character (@$!%*?&)
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                placeholder="Confirm your password"
-                required
-              />
-            </div>
-            
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating Account...
-                </>
-              ) : (
-                'Create Account'
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
-            </Button>
-          </form>
+              
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="Enter your email"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="familyName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Family Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter your family name"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="Enter your password"
+                          autoComplete="new-password"
+                          {...field}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                    <div className="text-xs text-muted-foreground">
+                      Password must contain at least 8 characters with uppercase, lowercase, number, and special character (@$!%*?&)
+                    </div>
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Confirm your password"
+                        autoComplete="new-password"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating Account...
+                  </>
+                ) : (
+                  'Create Account'
+                )}
+              </Button>
+            </form>
+          </Form>
           
           <div className="mt-6 text-center text-sm">
             <span className="text-muted-foreground">Already have an account? </span>

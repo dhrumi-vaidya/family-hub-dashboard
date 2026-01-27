@@ -65,12 +65,22 @@ export default function NewRegister() {
     }
   }, [isAuthenticated, navigate]);
   
-  // Load invite information
+  // Load invite information and prefill email
   useEffect(() => {
     if (inviteToken) {
       loadInviteInfo();
     }
   }, [inviteToken]);
+
+  // Update email when invite info is loaded
+  useEffect(() => {
+    if (inviteInfo && inviteInfo.recipientEmail) {
+      setFormData(prev => ({
+        ...prev,
+        email: inviteInfo.recipientEmail
+      }));
+    }
+  }, [inviteInfo]);
   
   const loadInviteInfo = async () => {
     if (!inviteToken) return;
@@ -79,14 +89,11 @@ export default function NewRegister() {
     setInviteError('');
     
     try {
-      // Call API to get invite info
-      const response = await apiClient.request('/auth/invite-info', {
-        method: 'POST',
-        body: JSON.stringify({ inviteToken })
-      });
+      // Call API to get invite info using the correct endpoint
+      const response = await apiClient.getInviteInfo(inviteToken);
       
       if (response.success) {
-        setInviteInfo(response.inviteInfo);
+        setInviteInfo(response.invite);
         setActiveTab('invite');
       } else {
         setInviteError('Invalid or expired invite link');
@@ -136,7 +143,12 @@ export default function NewRegister() {
         )
       };
       
-      const result = await register(registerData);
+      const result = await apiClient.register(
+        registerData.email,
+        registerData.password,
+        registerData.familyName,
+        registerData.inviteToken
+      );
       
       if (result.success) {
         toast.success('Registration successful!');
@@ -277,10 +289,21 @@ export default function NewRegister() {
                     type="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    placeholder="Enter your email address"
+                    placeholder={activeTab === 'invite' ? "Enter the email address this invite was sent to" : "Enter your email address"}
                     required
-                    disabled={isLoading}
+                    disabled={isLoading || (activeTab === 'invite' && inviteInfo?.recipientEmail)}
+                    readOnly={activeTab === 'invite' && inviteInfo?.recipientEmail}
                   />
+                  {activeTab === 'invite' && inviteInfo?.recipientEmail && (
+                    <p className="text-xs text-muted-foreground">
+                      Email is pre-filled from the invitation
+                    </p>
+                  )}
+                  {activeTab === 'invite' && !inviteInfo?.recipientEmail && (
+                    <p className="text-xs text-muted-foreground">
+                      Enter the email address where you received this invitation
+                    </p>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
@@ -293,6 +316,7 @@ export default function NewRegister() {
                       value={formData.password}
                       onChange={handleInputChange}
                       placeholder="Create a strong password"
+                      autoComplete="new-password"
                       required
                       disabled={isLoading}
                     />
@@ -326,6 +350,7 @@ export default function NewRegister() {
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
                       placeholder="Confirm your password"
+                      autoComplete="new-password"
                       required
                       disabled={isLoading}
                     />

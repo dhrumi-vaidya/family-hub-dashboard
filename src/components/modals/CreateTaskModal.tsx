@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { createTaskSchema, type CreateTaskFormData } from '@/lib/validations';
 
 interface CreateTaskModalProps {
   open: boolean;
@@ -16,24 +19,25 @@ const members = ['Rajesh Sharma', 'Anita Sharma', 'Vikram Sharma', 'Priya Sharma
 const recurrenceOptions = ['once', 'weekly', 'monthly', 'quarterly'];
 
 export function CreateTaskModal({ open, onOpenChange }: CreateTaskModalProps) {
-  const [title, setTitle] = useState('');
-  const [assignee, setAssignee] = useState('');
-  const [recurrence, setRecurrence] = useState('once');
-  const [dueDate, setDueDate] = useState('');
-  const [description, setDescription] = useState('');
+  const form = useForm<CreateTaskFormData>({
+    resolver: zodResolver(createTaskSchema),
+    defaultValues: {
+      title: '',
+      assignee: '',
+      recurrence: 'once',
+      dueDate: '',
+      description: '',
+    },
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title || !assignee || !dueDate) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-    toast.success(`Task "${title}" assigned to ${assignee}`);
-    setTitle('');
-    setAssignee('');
-    setRecurrence('once');
-    setDueDate('');
-    setDescription('');
+  const handleSubmit = (data: CreateTaskFormData) => {
+    toast.success(`Task "${data.title}" assigned to ${data.assignee}`);
+    form.reset();
+    onOpenChange(false);
+  };
+
+  const handleCancel = () => {
+    form.reset();
     onOpenChange(false);
   };
 
@@ -43,72 +47,116 @@ export function CreateTaskModal({ open, onOpenChange }: CreateTaskModalProps) {
         <DialogHeader>
           <DialogTitle>Create New Task</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Task Title *</Label>
-            <Input
-              id="title"
-              placeholder="Enter task title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Task Title *</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter task title"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="assignee">Assign To *</Label>
-            <Select value={assignee} onValueChange={setAssignee} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Select member" />
-              </SelectTrigger>
-              <SelectContent>
-                {members.map((member) => (
-                  <SelectItem key={member} value={member}>{member}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="dueDate">Due Date *</Label>
-            <Input
-              id="dueDate"
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              required
+            
+            <FormField
+              control={form.control}
+              name="assignee"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assign To *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select member" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {members.map((member) => (
+                        <SelectItem key={member} value={member}>{member}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="recurrence">Recurrence</Label>
-            <Select value={recurrence} onValueChange={setRecurrence}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select recurrence" />
-              </SelectTrigger>
-              <SelectContent>
-                {recurrenceOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option.charAt(0).toUpperCase() + option.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              placeholder="Optional description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
+            
+            <FormField
+              control={form.control}
+              name="dueDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Due Date *</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit">Create Task</Button>
-          </DialogFooter>
-        </form>
+            
+            <FormField
+              control={form.control}
+              name="recurrence"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Recurrence</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select recurrence" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {recurrenceOptions.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option.charAt(0).toUpperCase() + option.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Optional description"
+                      rows={3}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button type="submit">Create Task</Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

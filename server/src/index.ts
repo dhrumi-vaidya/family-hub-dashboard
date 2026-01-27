@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
+import debugRoutes from './routes/debug';
 
 // Load environment variables first
 dotenv.config();
@@ -92,6 +93,7 @@ app.get('/api/health', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/debug', debugRoutes);
 
 // 404 handler
 app.use('/api/*', (req, res) => {

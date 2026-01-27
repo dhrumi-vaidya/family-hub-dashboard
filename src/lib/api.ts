@@ -97,10 +97,18 @@ class ApiClient {
 
       return data;
     } catch (error) {
-      // Don't log 401 errors for refresh token endpoint as they're expected
-      if (!(endpoint === '/auth/refresh' && error instanceof Error && error.message.includes('401'))) {
+      // Only log unexpected errors, not expected auth failures
+      const isRefreshEndpoint = endpoint === '/auth/refresh';
+      const isAuthError = error instanceof Error && (
+        error.message.includes('401') || 
+        error.message.includes('Unauthorized') ||
+        error.message.includes('Refresh token not found')
+      );
+      
+      if (!isRefreshEndpoint || !isAuthError) {
         console.error('API request failed:', error);
       }
+      
       throw error;
     }
   }
@@ -146,11 +154,19 @@ class ApiClient {
       }
       return false;
     } catch (error: any) {
-      // Don't log refresh failures as errors if it's just missing token or unauthorized
-      if (!error.message.includes('Refresh token not found') && !error.message.includes('Unauthorized')) {
-        console.error('Token refresh failed:', error);
-      }
+      // Clear any stored access token on refresh failure
       TokenStorage.clearAccessToken();
+      
+      // Don't log expected refresh failures (missing token, expired, etc.)
+      const isExpectedFailure = error.message.includes('Refresh token not found') || 
+                               error.message.includes('Unauthorized') ||
+                               error.message.includes('401') ||
+                               error.message.includes('REFRESH_TOKEN_MISSING');
+      
+      if (!isExpectedFailure) {
+        console.error('Unexpected token refresh error:', error);
+      }
+      
       return false;
     }
   }

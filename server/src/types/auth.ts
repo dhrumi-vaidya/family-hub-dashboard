@@ -83,6 +83,7 @@ export interface InviteTokenData {
   roleToAssign: FamilyRole;
   invitedBy: string;
   expiresAt: Date;
+  recipientEmail: string | null;
 }
 
 // Audit log entry

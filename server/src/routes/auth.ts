@@ -417,7 +417,8 @@ router.post('/generate-invite',
         familyId,
         roleToAssign as FamilyRole,
         req.user!.id,
-        expiresInHours
+        expiresInHours,
+        recipientEmail
       );
 
       const inviteUrl = `${process.env.FRONTEND_URL}/new-register?invite=${inviteToken}`;

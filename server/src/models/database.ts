@@ -103,6 +103,7 @@ export interface InviteToken {
   created_at: Date;
   used_at: Date | null;
   used_by: string | null; // FK to users.id
+  recipient_email: string | null; // Email address of the invited person
 }
 
 // Mock Database Implementation (PostgreSQL-compatible)
