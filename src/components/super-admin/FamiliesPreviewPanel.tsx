@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Building2, 
   Search, 
@@ -33,6 +33,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
+import { apiClient } from '@/lib/api';
 
 interface Family {
   id: string;
@@ -44,87 +45,61 @@ interface Family {
 }
 
 interface FamiliesPreviewPanelProps {
-  families?: Family[];
-  isLoading?: boolean;
   onViewFamily?: (family: Family) => void;
   onSuspendFamily?: (family: Family) => void;
   onReinstateFamily?: (family: Family) => void;
 }
 
-const dummyFamilies: Family[] = [
-  {
-    id: '1',
-    name: 'Sharma Family',
-    adminCount: 2,
-    memberCount: 8,
-    createdAt: '2024-01-15',
-    status: 'active',
-  },
-  {
-    id: '2',
-    name: 'Verma Family',
-    adminCount: 1,
-    memberCount: 5,
-    createdAt: '2024-02-20',
-    status: 'active',
-  },
-  {
-    id: '3',
-    name: 'Gupta Family',
-    adminCount: 1,
-    memberCount: 4,
-    createdAt: '2024-03-10',
-    status: 'flagged',
-  },
-  {
-    id: '4',
-    name: 'Patel Family',
-    adminCount: 2,
-    memberCount: 6,
-    createdAt: '2024-03-25',
-    status: 'active',
-  },
-  {
-    id: '5',
-    name: 'Singh Family',
-    adminCount: 1,
-    memberCount: 3,
-    createdAt: '2024-04-01',
-    status: 'suspended',
-  },
-];
-
-const statusConfig = {
-  active: {
-    label: 'Active',
-    className: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
-    icon: CheckCircle2,
-  },
-  flagged: {
-    label: 'Flagged',
-    className: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-    icon: AlertTriangle,
-  },
-  suspended: {
-    label: 'Suspended',
-    className: 'bg-red-500/20 text-red-300 border-red-500/30',
-    icon: Ban,
-  },
-};
-
 export function FamiliesPreviewPanel({
-  families = dummyFamilies,
-  isLoading = false,
   onViewFamily,
   onSuspendFamily,
   onReinstateFamily,
 }: FamiliesPreviewPanelProps) {
+  const [families, setFamilies] = useState<Family[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     action: 'suspend' | 'reinstate';
     family: Family | null;
   }>({ open: false, action: 'suspend', family: null });
+
+  useEffect(() => {
+    const fetchFamilies = async () => {
+      try {
+        setIsLoading(true);
+        const response = await apiClient.get('/admin/families');
+        if (response.success) {
+          setFamilies(response.data || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch families:', error);
+        setFamilies([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFamilies();
+  }, []);
+
+  const statusConfig = {
+    active: {
+      label: 'Active',
+      className: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+      icon: CheckCircle2,
+    },
+    flagged: {
+      label: 'Flagged',
+      className: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+      icon: AlertTriangle,
+    },
+    suspended: {
+      label: 'Suspended',
+      className: 'bg-red-500/20 text-red-300 border-red-500/30',
+      icon: Ban,
+    },
+  };
 
   const filteredFamilies = families.filter((family) =>
     family.name.toLowerCase().includes(searchQuery.toLowerCase())

@@ -1,16 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, Sector } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-const data = [
-  { name: 'Groceries', value: 18000, color: 'hsl(var(--chart-1))' },
-  { name: 'Utilities', value: 12000, color: 'hsl(var(--chart-2))' },
-  { name: 'Healthcare', value: 8000, color: 'hsl(var(--chart-3))' },
-  { name: 'Education', value: 5000, color: 'hsl(var(--chart-4))' },
-  { name: 'Transport', value: 2000, color: 'hsl(var(--chart-5))' },
-];
+import { apiClient } from '@/lib/api';
 
 interface ExpenseChartProps {
   personal?: boolean;
@@ -40,14 +33,48 @@ const renderActiveShape = (props: any) => {
 };
 
 export function ExpenseChart({ personal = false }: ExpenseChartProps) {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
   const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
 
+  useEffect(() => {
+    const fetchExpenseData = async () => {
+      try {
+        setLoading(true);
+        const response = await apiClient.get('/expenses/category-summary');
+        if (response.success) {
+          const expenseData = response.data || [];
+          // Add colors to the data
+          const colors = [
+            'hsl(var(--chart-1))',
+            'hsl(var(--chart-2))',
+            'hsl(var(--chart-3))',
+            'hsl(var(--chart-4))',
+            'hsl(var(--chart-5))'
+          ];
+          const dataWithColors = expenseData.map((item: any, index: number) => ({
+            ...item,
+            color: colors[index % colors.length]
+          }));
+          setData(dataWithColors);
+        }
+      } catch (error) {
+        console.error('Failed to fetch expense data:', error);
+        setData([]); // Empty array on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExpenseData();
+  }, [personal]);
+
   const chartData = personal
-    ? data.map((d) => ({ ...d, value: Math.round(d.value * 0.4) }))
+    ? data.map((d: any) => ({ ...d, value: Math.round(d.value * 0.4) }))
     : data;
 
-  const visibleData = chartData.filter((d) => !hiddenCategories.has(d.name));
+  const visibleData = chartData.filter((d: any) => !hiddenCategories.has(d.name));
 
   const onPieEnter = useCallback((_: any, index: number) => {
     setActiveIndex(index);
@@ -78,7 +105,7 @@ export function ExpenseChart({ personal = false }: ExpenseChartProps) {
   };
 
   // Create legend payload with ALL categories (including hidden ones)
-  const legendPayload = chartData.map((item) => ({
+  const legendPayload = chartData.map((item: any) => ({
     value: item.name,
     type: 'circle' as const,
     color: hiddenCategories.has(item.name) ? 'hsl(var(--muted))' : item.color,
@@ -102,55 +129,65 @@ export function ExpenseChart({ personal = false }: ExpenseChartProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={220}>
-          <PieChart>
-            <Pie
-              data={visibleData}
-              cx="50%"
-              cy="50%"
-              innerRadius={50}
-              outerRadius={80}
-              paddingAngle={2}
-              dataKey="value"
-              activeIndex={activeIndex}
-              activeShape={renderActiveShape}
-              onMouseEnter={onPieEnter}
-              onMouseLeave={onPieLeave}
-            >
-              {visibleData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip
-              formatter={(value: number) => `₹${value.toLocaleString()}`}
-              contentStyle={{
-                backgroundColor: 'hsl(var(--card))',
-                borderColor: 'hsl(var(--border))',
-                borderRadius: '0.5rem',
-                color: 'hsl(var(--foreground))',
-              }}
-              labelStyle={{ color: 'hsl(var(--foreground))' }}
-            />
-            <Legend
-              verticalAlign="bottom"
-              iconType="circle"
-              iconSize={8}
-              wrapperStyle={{ fontSize: '12px', cursor: 'pointer' }}
-              payload={legendPayload}
-              onClick={handleLegendClick}
-              formatter={(value) => (
-                <span
-                  style={{
-                    color: hiddenCategories.has(value) ? 'hsl(var(--muted))' : 'hsl(var(--foreground))',
-                    textDecoration: hiddenCategories.has(value) ? 'line-through' : 'none',
-                  }}
-                >
-                  {value}
-                </span>
-              )}
-            />
-          </PieChart>
-        </ResponsiveContainer>
+        {loading ? (
+          <div className="flex items-center justify-center h-[220px] text-muted-foreground">
+            Loading expense data...
+          </div>
+        ) : chartData.length === 0 ? (
+          <div className="flex items-center justify-center h-[220px] text-muted-foreground">
+            No expense data available
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={220}>
+            <PieChart>
+              <Pie
+                data={visibleData}
+                cx="50%"
+                cy="50%"
+                innerRadius={50}
+                outerRadius={80}
+                paddingAngle={2}
+                dataKey="value"
+                activeIndex={activeIndex}
+                activeShape={renderActiveShape}
+                onMouseEnter={onPieEnter}
+                onMouseLeave={onPieLeave}
+              >
+                {visibleData.map((entry: any, index: number) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value: number) => `₹${value.toLocaleString()}`}
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--card))',
+                  borderColor: 'hsl(var(--border))',
+                  borderRadius: '0.5rem',
+                  color: 'hsl(var(--foreground))',
+                }}
+                labelStyle={{ color: 'hsl(var(--foreground))' }}
+              />
+              <Legend
+                verticalAlign="bottom"
+                iconType="circle"
+                iconSize={8}
+                wrapperStyle={{ fontSize: '12px', cursor: 'pointer' }}
+                payload={legendPayload}
+                onClick={handleLegendClick}
+                formatter={(value) => (
+                  <span
+                    style={{
+                      color: hiddenCategories.has(value) ? 'hsl(var(--muted))' : 'hsl(var(--foreground))',
+                      textDecoration: hiddenCategories.has(value) ? 'line-through' : 'none',
+                    }}
+                  >
+                    {value}
+                  </span>
+                )}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        )}
       </CardContent>
     </Card>
   );

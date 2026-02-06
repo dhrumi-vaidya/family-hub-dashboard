@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,12 +6,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Mail, UserPlus, Copy, CheckCircle, Users } from 'lucide-react';
+import { Loader2, Mail, UserPlus, Copy, CheckCircle, Users, Clock, ExternalLink, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
 type FamilyRole = 'ADULT' | 'SENIOR' | 'TEEN' | 'CHILD';
+
+interface SentInvitation {
+  id: string;
+  recipientEmail: string;
+  role: FamilyRole;
+  expiresAt: string;
+  createdAt: string;
+  isUsed: boolean;
+  inviteUrl: string;
+  invitedBy: string;
+}
 
 const roleLabels: Record<FamilyRole, string> = {
   'ADULT': 'Adult Member',
@@ -38,9 +49,32 @@ export default function InviteMembers() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [generatedInvite, setGeneratedInvite] = useState('');
+  const [sentInvitations, setSentInvitations] = useState<SentInvitation[]>([]);
+  const [loadingInvitations, setLoadingInvitations] = useState(true);
 
   // Check if user is family admin
   const isAdmin = selectedFamily?.role === 'FAMILY_ADMIN';
+
+  // Load sent invitations on component mount
+  useEffect(() => {
+    if (isAdmin) {
+      loadSentInvitations();
+    }
+  }, [isAdmin]);
+
+  const loadSentInvitations = async () => {
+    try {
+      setLoadingInvitations(true);
+      const response = await apiClient.get('/family/invitations');
+      if (response.success) {
+        setSentInvitations(response.data || []);
+      }
+    } catch (error) {
+      console.error('Failed to load sent invitations:', error);
+    } finally {
+      setLoadingInvitations(false);
+    }
+  };
 
   if (!isAdmin) {
     return (
@@ -120,6 +154,9 @@ export default function InviteMembers() {
           role: 'ADULT',
           expiresInHours: '72'
         });
+        
+        // Reload sent invitations
+        loadSentInvitations();
       } else {
         setError(response.error || 'Failed to generate invitation');
       }
@@ -130,38 +167,92 @@ export default function InviteMembers() {
     }
   };
 
-  const copyInviteLink = async () => {
-    if (generatedInvite) {
-      try {
-        // Try modern clipboard API first
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(generatedInvite);
+  const copyInviteLink = async (inviteUrl: string) => {
+    try {
+      // Try modern clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(inviteUrl);
+        toast.success('Invite link copied to clipboard!');
+      } else {
+        // Fallback for older browsers or non-HTTPS contexts
+        const textArea = document.createElement('textarea');
+        textArea.value = inviteUrl;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          document.execCommand('copy');
           toast.success('Invite link copied to clipboard!');
-        } else {
-          // Fallback for older browsers or non-HTTPS contexts
-          const textArea = document.createElement('textarea');
-          textArea.value = generatedInvite;
-          textArea.style.position = 'fixed';
-          textArea.style.left = '-999999px';
-          textArea.style.top = '-999999px';
-          document.body.appendChild(textArea);
-          textArea.focus();
-          textArea.select();
-          
-          try {
-            document.execCommand('copy');
-            toast.success('Invite link copied to clipboard!');
-          } catch (err) {
-            console.error('Fallback copy failed:', err);
-            toast.error('Could not copy to clipboard. Please copy the link manually.');
-          } finally {
-            document.body.removeChild(textArea);
-          }
+        } catch (err) {
+          console.error('Fallback copy failed:', err);
+          toast.error('Could not copy to clipboard. Please copy the link manually.');
+        } finally {
+          document.body.removeChild(textArea);
         }
-      } catch (err) {
-        console.error('Copy to clipboard failed:', err);
-        toast.error('Could not copy to clipboard. Please copy the link manually.');
       }
+    } catch (err) {
+      console.error('Copy to clipboard failed:', err);
+      toast.error('Could not copy to clipboard. Please copy the link manually.');
+    }
+  };
+
+  const copyGeneratedInviteLink = async () => {
+    if (generatedInvite) {
+      await copyInviteLink(generatedInvite);
+    }
+  };
+
+  const getTimeRemaining = (expiresAt: string): string => {
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const remaining = expiry.getTime() - now.getTime();
+    
+    if (remaining <= 0) return 'Expired';
+    
+    const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (days > 0) {
+      return `${days}d ${hours}h remaining`;
+    } else if (hours > 0) {
+      return `${hours}h ${minutes}m remaining`;
+    } else {
+      return `${minutes}m remaining`;
+    }
+  };
+
+  const getInvitationStatus = (invitation: SentInvitation): { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' } => {
+    if (invitation.isUsed) {
+      return { label: 'Used', variant: 'default' };
+    }
+    
+    const now = new Date();
+    const expiry = new Date(invitation.expiresAt);
+    
+    if (expiry <= now) {
+      return { label: 'Expired', variant: 'destructive' };
+    }
+    
+    return { label: 'Active', variant: 'secondary' };
+  };
+
+  const revokeInvitation = async (invitationId: string) => {
+    try {
+      const response = await apiClient.delete(`/family/invitations/${invitationId}`);
+      if (response.success) {
+        toast.success('Invitation revoked successfully');
+        loadSentInvitations();
+      } else {
+        toast.error('Failed to revoke invitation');
+      }
+    } catch (error) {
+      console.error('Failed to revoke invitation:', error);
+      toast.error('Failed to revoke invitation');
     }
   };
 
@@ -274,7 +365,7 @@ export default function InviteMembers() {
                   <div className="p-3 bg-muted rounded-lg break-all text-sm">
                     {generatedInvite}
                   </div>
-                  <Button onClick={copyInviteLink} variant="outline" className="w-full">
+                  <Button onClick={copyGeneratedInviteLink} variant="outline" className="w-full">
                     <Copy className="mr-2 h-4 w-4" />
                     Copy Invite Link
                   </Button>
@@ -285,6 +376,111 @@ export default function InviteMembers() {
                 </CardContent>
               </Card>
             )}
+            
+            {/* Sent Invitations Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  Sent Invitations
+                </CardTitle>
+                <CardDescription>
+                  View and manage all invitation links you've sent
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingInvitations ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                    Loading invitations...
+                  </div>
+                ) : sentInvitations.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Mail className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No invitations sent yet</p>
+                    <p className="text-sm">Send your first invitation using the form above</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {sentInvitations.map((invitation) => {
+                      const status = getInvitationStatus(invitation);
+                      const timeRemaining = getTimeRemaining(invitation.expiresAt);
+                      
+                      return (
+                        <div key={invitation.id} className="border rounded-lg p-4 space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{invitation.recipientEmail}</span>
+                                <Badge className={
+                                  invitation.role === 'ADULT' ? 'bg-blue-100 text-blue-800' :
+                                  invitation.role === 'SENIOR' ? 'bg-green-100 text-green-800' :
+                                  invitation.role === 'TEEN' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-pink-100 text-pink-800'
+                                }>
+                                  {roleLabels[invitation.role]}
+                                </Badge>
+                              </div>
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                <span>Sent {new Date(invitation.createdAt).toLocaleDateString()}</span>
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {timeRemaining}
+                                </div>
+                              </div>
+                            </div>
+                            <Badge variant={status.variant}>
+                              {status.label}
+                            </Badge>
+                          </div>
+                          
+                          {!invitation.isUsed && new Date(invitation.expiresAt) > new Date() && (
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => copyInviteLink(invitation.inviteUrl)}
+                                className="flex-1"
+                              >
+                                <Copy className="h-3 w-3 mr-1" />
+                                Copy Link
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => window.open(invitation.inviteUrl, '_blank')}
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => revokeInvitation(invitation.id)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                          
+                          {invitation.isUsed && (
+                            <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
+                              ✅ This invitation has been used and the member has joined your family
+                            </div>
+                          )}
+                          
+                          {!invitation.isUsed && new Date(invitation.expiresAt) <= new Date() && (
+                            <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                              ⏰ This invitation has expired and can no longer be used
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
             
             <Card>
               <CardHeader>

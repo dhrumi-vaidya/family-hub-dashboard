@@ -1,5 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, MoreHorizontal, Users, Shield, UserX, UserCheck, Mail, Phone } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { apiClient } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -37,17 +42,24 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-interface User {
+interface Family {
   id: string;
   name: string;
-  email: string;
-  phone?: string;
-  role: 'admin' | 'member' | 'super_admin';
-  status: 'active' | 'blocked' | 'pending';
-  familiesCount: number;
-  lastLogin: string;
+  role: string;
   createdAt: string;
-  loginAttempts: number;
+}
+
+interface User {
+  id: string;
+  email: string;
+  globalRole: 'SUPER_ADMIN' | 'USER';
+  createdAt: string;
+  lastLogin: string | null;
+  failedLoginAttempts: number;
+  isLocked: boolean;
+  isEmergencyUser: boolean;
+  emergencyExpiresAt: string | null;
+  families: Family[];
 }
 
 export default function UsersPage() {
@@ -56,89 +68,88 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [actionType, setActionType] = useState<'block' | 'unblock' | 'reset' | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock user data
-  const users: User[] = [
-    {
-      id: '1',
-      name: 'Rahul Sharma',
-      email: 'rahul@sharma.com',
-      phone: '+91 9876543210',
-      role: 'admin',
-      status: 'active',
-      familiesCount: 2,
-      lastLogin: '2 hours ago',
-      createdAt: '2024-01-15',
-      loginAttempts: 0,
-    },
-    {
-      id: '2',
-      name: 'Sunita Sharma',
-      email: 'sunita@sharma.com',
-      phone: '+91 9876543211',
-      role: 'member',
-      status: 'active',
-      familiesCount: 1,
-      lastLogin: '1 day ago',
-      createdAt: '2024-01-15',
-      loginAttempts: 0,
-    },
-    {
-      id: '3',
-      name: 'Amit Patel',
-      email: 'amit@patel.com',
-      phone: '+91 9876543212',
-      role: 'admin',
-      status: 'blocked',
-      familiesCount: 1,
-      lastLogin: '1 week ago',
-      createdAt: '2024-02-01',
-      loginAttempts: 5,
-    },
-    {
-      id: '4',
-      name: 'System Administrator',
-      email: 'super.admin@kutumb.com',
-      role: 'super_admin',
-      status: 'active',
-      familiesCount: 0,
-      lastLogin: '30 minutes ago',
-      createdAt: '2024-01-01',
-      loginAttempts: 0,
-    },
-  ];
+  // Fetch users from API
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const response = await apiClient.get('/admin/users');
+
+        if (response.success && response.data) {
+          setUsers(response.data);
+        } else {
+          throw new Error(response.error || 'Failed to fetch users');
+        }
+      } catch (err: any) {
+        console.error('Error fetching users:', err);
+        setError(err.message || 'Failed to fetch users');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Never';
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 60) return `${diffMins} minutes ago`;
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
+  };
+
+  const getStatus = (user: User): 'active' | 'blocked' | 'pending' => {
+    if (user.isLocked) return 'blocked';
+    if (user.isEmergencyUser) return 'pending';
+    return 'active';
+  };
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (user.phone && user.phone.includes(searchTerm));
+    const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
-    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+    const status = getStatus(user);
+    const matchesStatus = statusFilter === 'all' || status === statusFilter;
+    
+    const role = user.globalRole === 'SUPER_ADMIN' ? 'super_admin' : 
+                 user.families.some(f => f.role === 'FAMILY_ADMIN') ? 'admin' : 'member';
+    const matchesRole = roleFilter === 'all' || role === roleFilter;
     
     return matchesSearch && matchesStatus && matchesRole;
   });
 
-  const getStatusBadge = (status: User['status']) => {
+  const getStatusBadge = (user: User) => {
+    const status = getStatus(user);
     switch (status) {
       case 'active':
         return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Active</Badge>;
       case 'blocked':
         return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Blocked</Badge>;
       case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">Pending</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">Emergency</Badge>;
     }
   };
 
-  const getRoleBadge = (role: User['role']) => {
-    switch (role) {
-      case 'super_admin':
-        return <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">Super Admin</Badge>;
-      case 'admin':
-        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Admin</Badge>;
-      case 'member':
-        return <Badge variant="outline">Member</Badge>;
+  const getRoleBadge = (user: User) => {
+    if (user.globalRole === 'SUPER_ADMIN') {
+      return <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">Super Admin</Badge>;
     }
+    const hasAdminRole = user.families.some(f => f.role === 'FAMILY_ADMIN');
+    if (hasAdminRole) {
+      return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Family Admin</Badge>;
+    }
+    return <Badge variant="outline">Member</Badge>;
   };
 
   const handleAction = (user: User, action: 'block' | 'unblock' | 'reset') => {
@@ -157,10 +168,26 @@ export default function UsersPage() {
 
   const stats = {
     total: users.length,
-    active: users.filter(u => u.status === 'active').length,
-    blocked: users.filter(u => u.status === 'blocked').length,
-    admins: users.filter(u => u.role === 'admin').length,
+    active: users.filter(u => getStatus(u) === 'active').length,
+    blocked: users.filter(u => u.isLocked).length,
+    admins: users.filter(u => u.globalRole === 'SUPER_ADMIN' || u.families.some(f => f.role === 'FAMILY_ADMIN')).length,
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Loading users...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-red-500">Error: {error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -273,7 +300,7 @@ export default function UsersPage() {
               <TableHeader>
                 <TableRow className="border-border">
                   <TableHead className="text-muted-foreground">User</TableHead>
-                  <TableHead className="text-muted-foreground">Contact</TableHead>
+                  <TableHead className="text-muted-foreground">Email</TableHead>
                   <TableHead className="text-muted-foreground">Role</TableHead>
                   <TableHead className="text-muted-foreground">Status</TableHead>
                   <TableHead className="text-muted-foreground">Families</TableHead>
@@ -287,35 +314,43 @@ export default function UsersPage() {
                   <TableRow key={user.id} className="border-border">
                     <TableCell>
                       <div>
-                        <p className="font-medium text-foreground">{user.name}</p>
-                        <p className="text-sm text-muted-foreground">Joined {user.createdAt}</p>
+                        <p className="font-medium text-foreground">{user.email.split('@')[0]}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Joined {new Date(user.createdAt).toLocaleDateString()}
+                        </p>
                       </div>
                     </TableCell>
                     <TableCell>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Mail className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-foreground">{user.email}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{getRoleBadge(user)}</TableCell>
+                    <TableCell>{getStatusBadge(user)}</TableCell>
+                    <TableCell>
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Mail className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-foreground">{user.email}</span>
-                        </div>
-                        {user.phone && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <Phone className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-muted-foreground">{user.phone}</span>
+                        <p className="text-foreground font-medium">{user.families.length} {user.families.length === 1 ? 'family' : 'families'}</p>
+                        {user.families.length > 0 && (
+                          <div className="text-xs text-muted-foreground space-y-0.5">
+                            {user.families.map(family => (
+                              <div key={family.id} className="flex items-center gap-1">
+                                <span className="font-medium">{family.name}</span>
+                                <span className="text-xs">({family.role})</span>
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>{getRoleBadge(user.role)}</TableCell>
-                    <TableCell>{getStatusBadge(user.status)}</TableCell>
-                    <TableCell className="text-foreground">{user.familiesCount}</TableCell>
-                    <TableCell className="text-muted-foreground">{user.lastLogin}</TableCell>
+                    <TableCell className="text-muted-foreground">{formatDate(user.lastLogin)}</TableCell>
                     <TableCell>
-                      <span className={'text-sm ' + (user.loginAttempts > 3 ? 'text-red-500' : 'text-muted-foreground')}>
-                        {user.loginAttempts}
+                      <span className={'text-sm ' + (user.failedLoginAttempts > 3 ? 'text-red-500 font-medium' : 'text-muted-foreground')}>
+                        {user.failedLoginAttempts}
                       </span>
                     </TableCell>
                     <TableCell>
-                      {user.role !== 'super_admin' && (
+                      {user.globalRole !== 'SUPER_ADMIN' && (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
@@ -331,7 +366,7 @@ export default function UsersPage() {
                               Reset Password
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            {user.status === 'active' ? (
+                            {!user.isLocked ? (
                               <DropdownMenuItem 
                                 onClick={() => handleAction(user, 'block')}
                                 className="text-red-500"
@@ -372,11 +407,11 @@ export default function UsersPage() {
               </AlertDialogTitle>
               <AlertDialogDescription className="text-muted-foreground">
                 {actionType === 'block' && 
-                  'Are you sure you want to block "' + (selectedUser?.name || '') + '"? This will prevent them from accessing the platform.'}
+                  'Are you sure you want to block "' + (selectedUser?.email || '') + '"? This will prevent them from accessing the platform.'}
                 {actionType === 'unblock' && 
-                  'Are you sure you want to unblock "' + (selectedUser?.name || '') + '"? This will restore their access to the platform.'}
+                  'Are you sure you want to unblock "' + (selectedUser?.email || '') + '"? This will restore their access to the platform.'}
                 {actionType === 'reset' && 
-                  'Send a password reset email to "' + (selectedUser?.name || '') + '" at ' + (selectedUser?.email || '') + '?'}
+                  'Send a password reset email to ' + (selectedUser?.email || '') + '?'}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

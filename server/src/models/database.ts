@@ -120,7 +120,7 @@ class MockDatabase {
   }
 
   private async initializeData() {
-    // Create Super Admin
+    // Create Super Admin only - no dummy families or users
     const superAdminPasswordHash = await bcrypt.hash('Qwerty@123', 12);
     const superAdmin: User = {
       id: 'super_admin_1',
@@ -128,8 +128,8 @@ class MockDatabase {
       password_hash: superAdminPasswordHash,
       global_role: GlobalRole.SUPER_ADMIN,
       token_version: 0,
-      created_at: new Date('2024-01-01'),
-      updated_at: new Date('2024-01-01'),
+      created_at: new Date(),
+      updated_at: new Date(),
       last_login: null,
       failed_login_attempts: 0,
       locked_until: null,
@@ -137,88 +137,13 @@ class MockDatabase {
       emergency_expires_at: null
     };
 
-    // Create regular users
-    const regularPasswordHash = await bcrypt.hash('password123', 12);
-    const rahul: User = {
-      id: 'user_1',
-      email: 'rahul@sharma.com',
-      password_hash: regularPasswordHash,
-      global_role: GlobalRole.USER,
-      token_version: 0,
-      created_at: new Date('2024-01-01'),
-      updated_at: new Date('2024-01-01'),
-      last_login: null,
-      failed_login_attempts: 0,
-      locked_until: null,
-      is_emergency_user: false,
-      emergency_expires_at: null
-    };
-
-    const sunita: User = {
-      id: 'user_2',
-      email: 'sunita@sharma.com',
-      password_hash: regularPasswordHash,
-      global_role: GlobalRole.USER,
-      token_version: 0,
-      created_at: new Date('2024-01-01'),
-      updated_at: new Date('2024-01-01'),
-      last_login: null,
-      failed_login_attempts: 0,
-      locked_until: null,
-      is_emergency_user: false,
-      emergency_expires_at: null
-    };
-
-    this.users = [superAdmin, rahul, sunita];
-
-    // Create families
-    const sharmaFamily: Family = {
-      id: 'family_1',
-      name: 'Sharma Family',
-      created_by: 'user_1',
-      created_at: new Date('2024-01-01'),
-      updated_at: new Date('2024-01-01'),
-      is_active: true
-    };
-
-    const vermaFamily: Family = {
-      id: 'family_2',
-      name: 'Verma Family',
-      created_by: 'user_1',
-      created_at: new Date('2024-01-15'),
-      updated_at: new Date('2024-01-15'),
-      is_active: true
-    };
-
-    this.families = [sharmaFamily, vermaFamily];
-
-    // Create family memberships
-    this.familyMembers = [
-      {
-        id: 'member_1',
-        user_id: 'user_1',
-        family_id: 'family_1',
-        role: FamilyRole.FAMILY_ADMIN,
-        joined_at: new Date('2024-01-01'),
-        invited_by: 'user_1'
-      },
-      {
-        id: 'member_2',
-        user_id: 'user_2',
-        family_id: 'family_1',
-        role: FamilyRole.ADULT,
-        joined_at: new Date('2024-01-01'),
-        invited_by: 'user_1'
-      },
-      {
-        id: 'member_3',
-        user_id: 'user_1',
-        family_id: 'family_2',
-        role: FamilyRole.FAMILY_ADMIN,
-        joined_at: new Date('2024-01-15'),
-        invited_by: 'user_1'
-      }
-    ];
+    // Initialize with only super admin - all other data will be created dynamically
+    this.users = [superAdmin];
+    this.families = [];
+    this.familyMembers = [];
+    this.refreshTokens = [];
+    this.auditLogs = [];
+    this.inviteTokens = [];
   }
 
   // User operations
@@ -534,6 +459,61 @@ class MockDatabase {
 
     this.inviteTokens[inviteIndex].used_at = new Date();
     this.inviteTokens[inviteIndex].used_by = userId;
+    return true;
+  }
+
+  // Additional methods needed by the new routes
+  async getFamilyMembers(familyId: string): Promise<Array<FamilyMember & { user?: User }>> {
+    const members = this.familyMembers.filter(fm => fm.family_id === familyId);
+    return members.map(member => ({
+      ...member,
+      user: this.users.find(u => u.id === member.user_id)
+    }));
+  }
+
+  async getAllFamilies(): Promise<Family[]> {
+    return this.families;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return this.users;
+  }
+
+  async updateFamily(id: string, updates: Partial<Omit<Family, 'id' | 'created_at'>>): Promise<Family | null> {
+    const familyIndex = this.families.findIndex(f => f.id === id);
+    if (familyIndex === -1) return null;
+
+    this.families[familyIndex] = {
+      ...this.families[familyIndex],
+      ...updates,
+      updated_at: new Date()
+    };
+    return this.families[familyIndex];
+  }
+
+  async updateFamilyMemberRole(userId: string, familyId: string, role: FamilyRole): Promise<boolean> {
+    const memberIndex = this.familyMembers.findIndex(fm => 
+      fm.user_id === userId && fm.family_id === familyId
+    );
+    if (memberIndex === -1) return false;
+
+    this.familyMembers[memberIndex].role = role;
+    return true;
+  }
+
+  async getFamilyInvitations(familyId: string): Promise<InviteToken[]> {
+    return this.inviteTokens.filter(invite => invite.family_id === familyId);
+  }
+
+  async revokeInvitation(invitationId: string, familyId: string): Promise<boolean> {
+    const inviteIndex = this.inviteTokens.findIndex(invite => 
+      invite.id === invitationId && invite.family_id === familyId
+    );
+    if (inviteIndex === -1) return false;
+
+    // Mark as used to effectively revoke it
+    this.inviteTokens[inviteIndex].used_at = new Date();
+    this.inviteTokens[inviteIndex].used_by = 'revoked';
     return true;
   }
 }

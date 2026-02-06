@@ -152,7 +152,20 @@ export default function NewRegister() {
       
       if (result.success) {
         toast.success('Registration successful!');
-        // Navigation is handled by the useEffect above
+        
+        // Redirect based on registration type and user role
+        if (activeTab === 'invite' && inviteInfo) {
+          // User joined via invite - redirect to appropriate dashboard based on role
+          const role = inviteInfo.roleToAssign;
+          if (role === 'FAMILY_ADMIN') {
+            navigate('/admin-dashboard', { replace: true });
+          } else {
+            navigate('/member-dashboard', { replace: true });
+          }
+        } else {
+          // New family creation - user becomes family admin
+          navigate('/admin-dashboard', { replace: true });
+        }
       } else {
         setError(result.error || 'Registration failed');
       }

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { useAuth, UserRole } from './AuthContext';
+import { apiClient } from '@/lib/api';
 
 type UXMode = 'simple' | 'fast';
 
@@ -16,6 +17,7 @@ interface AppContextType {
   currentFamily: Family;
   setCurrentFamily: (family: Family) => void;
   families: Family[];
+  setFamilies: (families: Family[]) => void;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
   // Onboarding state
@@ -31,12 +33,6 @@ interface AppContextType {
   isModeSelected: boolean;
   setModeSelected: (selected: boolean) => void;
 }
-
-const defaultFamilies: Family[] = [
-  { id: '1', name: 'Sharma Family', memberCount: 8 },
-  { id: '2', name: 'Gupta Family', memberCount: 5 },
-  { id: '3', name: 'Patel Family', memberCount: 12 },
-];
 
 const ONBOARDING_KEY = 'kutumbos_onboarding_complete';
 const DISMISSED_HINTS_KEY = 'kutumbos_dismissed_hints';
@@ -79,7 +75,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return (stored as UXMode) || getDefaultModeForRole(userRole);
   });
 
-  const [currentFamily, setCurrentFamily] = useState<Family>(defaultFamilies[0]);
+  const [families, setFamilies] = useState<Family[]>([]);
+  const [currentFamily, setCurrentFamily] = useState<Family>(() => {
+    if (selectedFamily) {
+      return {
+        id: selectedFamily.id,
+        name: selectedFamily.name,
+        memberCount: 0 // Will be updated when families are loaded
+      };
+    }
+    return { id: '', name: '', memberCount: 0 };
+  });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     // On smaller screens we start with the sidebar closed so it doesn't block content.
     if (typeof window === 'undefined') return false;
@@ -166,7 +172,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         canChangeMode: canUserChangeMode(userRole),
         currentFamily,
         setCurrentFamily,
-        families: defaultFamilies,
+        families,
+        setFamilies,
         sidebarCollapsed,
         setSidebarCollapsed,
         hasCompletedOnboarding,
