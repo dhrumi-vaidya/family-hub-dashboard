@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { User, Mail, Phone, Camera, Save, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,14 +14,19 @@ import {
 } from '@/components/ui/select';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/contexts/ProfileContext';
 import { Hint } from '@/components/onboarding/Hint';
+import { toast } from 'sonner';
 
 export default function Profile() {
   const { mode } = useApp();
   const { user } = useAuth();
+  const { profile: savedProfile, setProfile: saveProfile } = useProfile();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [profile, setProfile] = useState({
-    name: '',
+    name: savedProfile.name || '',
     email: user?.email || '',
     phone: '',
     dateOfBirth: '',
@@ -29,6 +34,49 @@ export default function Profile() {
     emergencyContact: '',
     role: '',
   });
+
+  const [photoUrl, setPhotoUrl] = useState(savedProfile.photoUrl || '');
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Photo must be under 2MB');
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast.error('Only JPG, PNG or WebP allowed');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const url = ev.target?.result as string;
+      setPhotoUrl(url);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSave = () => {
+    saveProfile({ name: profile.name, photoUrl });
+    toast.success('Profile saved successfully');
+    console.log('[Profile] Saved:', {
+      name: profile.name,
+      email: profile.email,
+      phone: profile.phone,
+      dateOfBirth: profile.dateOfBirth,
+      bloodGroup: profile.bloodGroup,
+      emergencyContact: profile.emergencyContact,
+      role: profile.role,
+      hasPhoto: !!photoUrl,
+      savedAt: new Date().toISOString(),
+    });
+  };
+
+  const avatarFallback = profile.name
+    ? profile.name.split(' ').map((n) => n[0]).join('').toUpperCase()
+    : <User className="h-8 w-8" />;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -56,21 +104,47 @@ export default function Profile() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-6">
-            <Avatar className="h-24 w-24">
-              <AvatarImage src="/placeholder.svg" alt={profile.name} />
-              <AvatarFallback className="text-2xl">
-                {profile.name
-                  ? profile.name.split(' ').map((n) => n[0]).join('')
-                  : <User className="h-8 w-8" />}
-              </AvatarFallback>
-            </Avatar>
-            <div className="space-y-2">
-              <Button variant="outline" className="gap-2">
-                <Camera className="h-4 w-4" />
-                Change Photo
-              </Button>
-              <p className="text-xs text-muted-foreground">JPG, PNG. Max size 2MB.</p>
+            <div className="relative">
+              <Avatar className="h-24 w-24">
+                <AvatarImage src={photoUrl} alt={profile.name} />
+                <AvatarFallback className="text-2xl">{avatarFallback}</AvatarFallback>
+              </Avatar>
+              {/* Overlay click target */}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 hover:opacity-100 transition-opacity"
+                aria-label="Change photo"
+              >
+                <Camera className="h-6 w-6 text-white" />
+              </button>
             </div>
+            <div className="space-y-2">
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Camera className="h-4 w-4" />
+                {photoUrl ? 'Change Photo' : 'Upload Photo'}
+              </Button>
+              <p className="text-xs text-muted-foreground">JPG, PNG, WebP. Max size 2MB.</p>
+              {photoUrl && (
+                <button
+                  onClick={() => setPhotoUrl('')}
+                  className="text-xs text-destructive hover:underline"
+                >
+                  Remove photo
+                </button>
+              )}
+            </div>
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handlePhotoChange}
+            />
           </div>
         </CardContent>
       </Card>
@@ -92,6 +166,7 @@ export default function Profile() {
                 id="name"
                 value={profile.name}
                 onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                placeholder="Your full name"
               />
             </div>
             <div className="space-y-2">
@@ -101,7 +176,7 @@ export default function Profile() {
                 onValueChange={(value) => setProfile({ ...profile, role: value })}
               >
                 <SelectTrigger id="role">
-                  <SelectValue />
+                  <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Head of Family">Head of Family</SelectItem>
@@ -132,6 +207,7 @@ export default function Profile() {
                 type="tel"
                 value={profile.phone}
                 onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                placeholder="+91 XXXXX XXXXX"
               />
             </div>
           </div>
@@ -152,7 +228,7 @@ export default function Profile() {
         </CardContent>
       </Card>
 
-      {/* Health Information */}
+      {/* Emergency Information */}
       <Card className="animate-fade-in opacity-0" style={{ animationDelay: '0.3s' }}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -170,17 +246,12 @@ export default function Profile() {
                 onValueChange={(value) => setProfile({ ...profile, bloodGroup: value })}
               >
                 <SelectTrigger id="blood">
-                  <SelectValue />
+                  <SelectValue placeholder="Select blood group" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="A+">A+</SelectItem>
-                  <SelectItem value="A-">A-</SelectItem>
-                  <SelectItem value="B+">B+</SelectItem>
-                  <SelectItem value="B-">B-</SelectItem>
-                  <SelectItem value="AB+">AB+</SelectItem>
-                  <SelectItem value="AB-">AB-</SelectItem>
-                  <SelectItem value="O+">O+</SelectItem>
-                  <SelectItem value="O-">O-</SelectItem>
+                  {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((bg) => (
+                    <SelectItem key={bg} value={bg}>{bg}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -191,6 +262,7 @@ export default function Profile() {
                 type="tel"
                 value={profile.emergencyContact}
                 onChange={(e) => setProfile({ ...profile, emergencyContact: e.target.value })}
+                placeholder="+91 XXXXX XXXXX"
               />
             </div>
           </div>
@@ -208,7 +280,7 @@ export default function Profile() {
 
       {/* Save Button */}
       <div className="flex justify-end pt-4">
-        <Button size="lg" className="gap-2">
+        <Button size="lg" className="gap-2" onClick={handleSave}>
           <Save className="h-4 w-4" />
           Save Changes
         </Button>

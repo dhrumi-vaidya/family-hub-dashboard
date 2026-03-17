@@ -11,6 +11,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/contexts/ProfileContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
 
@@ -18,13 +19,15 @@ export function Header() {
   const navigate = useNavigate();
   const { mode, setMode, currentFamily, setCurrentFamily, families, sidebarCollapsed, setSidebarCollapsed } = useApp();
   const { user, logout, selectedFamily } = useAuth();
+  const { profile } = useProfile();
 
   const isFamilyAdmin = selectedFamily?.role === 'FAMILY_ADMIN';
 
-  // Display name: email prefix as fallback, family name if nothing else
+  // Prefer saved profile name, then email prefix, then family name
   const emailPrefix = user?.email?.split('@')[0] ?? '';
-  const displayName = emailPrefix || selectedFamily?.name || currentFamily?.name || 'User';
+  const displayName = profile.name || emailPrefix || selectedFamily?.name || currentFamily?.name || 'User';
   const avatarChar = displayName.charAt(0).toUpperCase();
+  const avatarPhoto = profile.photoUrl;
 
   const handleLogout = () => {
     logout();
@@ -131,8 +134,11 @@ export function Header() {
                 className="rounded-full touch-target"
                 aria-label="User menu"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground font-medium">
-                  {avatarChar}
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground font-medium overflow-hidden">
+                  {avatarPhoto
+                    ? <img src={avatarPhoto} alt={displayName} className="h-full w-full object-cover" />
+                    : <span className="text-sm font-semibold">{avatarChar}</span>
+                  }
                 </div>
               </Button>
             </DropdownMenuTrigger>
