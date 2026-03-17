@@ -1,0 +1,232 @@
+Create a full-screen onboarding modal flow that opens when the user clicks “Start in 2 minutes” on the landing page.
+
+This is not a static walkthrough.
+It must feel like a real product demo with interaction, leading to signup.
+
+🎯 GOAL
+
+Show value before signup
+
+Force user interaction (not passive slides)
+
+Complete flow in under 60 seconds
+
+Convert user to signup on final step
+
+🧱 MODAL BEHAVIOR
+
+Full-screen overlay (not small popup)
+
+Centered content with max-width
+
+Background slightly blurred
+
+Smooth step transitions (slide + fade)
+
+Progress bar at top (4 steps)
+
+📊 PROGRESS BAR
+
+Step 1 → 25%
+
+Step 2 → 50%
+
+Step 3 → 75%
+
+Step 4 → 100%
+
+⚙️ STEP 1 — CONTEXT (RELATABLE)
+Title:
+
+Let’s set up your family space
+
+Content:
+
+Right now, your family probably manages things in:
+
+chats
+
+memory
+
+random notes
+
+Let’s put it in one place.
+
+UI:
+
+3 simple icons (chat, notes, memory)
+
+Arrow/transition visual → organized dashboard
+
+CTA:
+
+Continue
+
+⚡ STEP 2 — INTERACTIVE DEMO (EXPENSE)
+Title:
+
+Try how it works
+
+UI (interactive mock, not static):
+
+Create a small card:
+
+Add Expense:
+
+Amount input (pre-filled: 500)
+
+Category dropdown (default: Food)
+
+Button: Add
+
+Behavior:
+
+On clicking Add:
+
+Show entry added below:
+“₹500 • Food”
+
+Animate entry (fade/slide)
+
+Show small success tick
+
+Micro copy:
+
+Everyone adds what they spend. You see everything clearly.
+
+CTA:
+
+Next
+
+🧾 STEP 3 — SECOND FEATURE (TASK OR HEALTH)
+Title:
+
+Keep important things safe
+
+Option A (Tasks):
+
+Input: “Pay electricity bill”
+
+Assign to: “Dad”
+
+Button: Add Task
+
+On click:
+
+Show task created
+
+Mark complete animation
+
+OR Option B (Health):
+
+Upload button (fake interaction)
+
+After click → show:
+“Report saved”
+
+Micro copy:
+
+No more searching or reminding.
+
+CTA:
+
+Next
+
+👥 STEP 4 — SIGNUP (FINAL CONVERSION)
+Title:
+
+Now make it real
+
+Content:
+
+This works best when your family is in one place.
+
+Create your account to:
+
+save your data
+
+invite members
+
+start using it
+
+UI:
+
+Show 2–3 avatar placeholders
+
+Subtle invite arrows / connection visual
+
+FORM:
+
+Name
+
+Email
+
+Password
+
+CTA (PRIMARY):
+
+Create Family & Continue
+
+Secondary:
+
+Already have an account? Login
+
+🧠 UX RULES
+
+No skip button
+
+No navbar or distractions
+
+Inputs should be pre-filled where possible
+
+Each step must feel interactive, not informational
+
+Total flow time < 60 seconds
+
+🎬 ANIMATIONS
+
+Step transition: slide + fade (200–300ms)
+
+Button hover: slight scale
+
+Input focus: soft glow
+
+Success action: checkmark + highlight
+
+📱 RESPONSIVE
+
+Fully optimized for mobile
+
+Full screen takeover
+
+Sticky bottom CTA on mobile
+
+⚙️ TECH NOTES
+
+Maintain step state (1–4)
+
+Persist demo actions temporarily
+
+On signup success → redirect to dashboard
+
+Preload demo data into dashboard for continuity
+
+🚫 DO NOT
+
+Do not make this a slideshow
+
+Do not overload with text
+
+Do not ask signup before demo
+
+Do not add more than 4 steps
+
+🎯 EXPECTED OUTPUT
+
+A clean, modern, high-conversion onboarding modal UI that:
+
+Feels like using the real product
+
+Guides user step-by-step
+
+Ends with a strong signup conversion

@@ -11,7 +11,7 @@ import { FamilyScore } from "@/components/sections/family-score";
 import { Faq } from "@/components/sections/faq";
 import { CtaSection } from "@/components/sections/cta-section";
 import { Footer } from "@/components/footer";
-import { WaitlistModal } from "@/components/waitlist-modal";
+import { OnboardingModal } from "@/components/onboarding-modal";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
@@ -70,7 +70,7 @@ export default function Home() {
       
       <Footer />
 
-      <WaitlistModal 
+      <OnboardingModal 
         isOpen={isWaitlistOpen} 
         onOpenChange={setIsWaitlistOpen} 
       />
