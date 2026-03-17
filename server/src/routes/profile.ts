@@ -17,13 +17,20 @@ const router = express.Router();
 const profileValidation = [
   body('name')
     .optional()
-    .isLength({ min: 1, max: 100 })
-    .withMessage('Name must be between 1 and 100 characters'),
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Name must be between 2 and 100 characters'),
 
   body('phone')
     .optional()
-    .matches(/^[+\d\s\-()]{7,20}$/)
-    .withMessage('Invalid phone number format'),
+    .custom((val: string) => {
+      if (!val) return true;
+      const stripped = val.trim().replace(/^(\+91|0)/, '').replace(/\s+/g, '');
+      if (!/^[6-9]\d{9}$/.test(stripped)) {
+        throw new Error('Enter a valid 10-digit Indian mobile number (starts with 6–9)');
+      }
+      return true;
+    }),
 
   body('email')
     .optional()
@@ -42,8 +49,14 @@ const profileValidation = [
 
   body('emergency_contact')
     .optional()
-    .matches(/^[+\d\s\-()]{0,20}$/)
-    .withMessage('Invalid emergency contact format'),
+    .custom((val: string) => {
+      if (!val) return true;
+      const stripped = val.trim().replace(/^(\+91|0)/, '').replace(/\s+/g, '');
+      if (!/^[6-9]\d{9}$/.test(stripped)) {
+        throw new Error('Enter a valid 10-digit Indian mobile number (starts with 6–9)');
+      }
+      return true;
+    }),
 
   body('family_role')
     .optional()

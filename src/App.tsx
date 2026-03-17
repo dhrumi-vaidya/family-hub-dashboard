@@ -159,7 +159,6 @@ const AppRoutes = () => {
       <Route path="/auth-debug" element={<AuthDebug />} />
       <Route path="/auth-test" element={<AuthTest />} />
       <Route path="/permissions-demo" element={<PermissionsDemo />} />
-      <Route path="/auth-status" element={<AuthStatus />} />
       <Route path="/test" element={<TestPage />} />
 
       {/* Super Admin Routes */}
