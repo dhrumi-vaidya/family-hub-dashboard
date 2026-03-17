@@ -2,64 +2,56 @@ import { Check, X } from "lucide-react";
 import { motion } from "framer-motion";
 
 const rows = [
-  { feature: "System Approach", others: "Chat-based & scattered", kutumbos: "Structured unified system" },
-  { feature: "Data Persistence", others: "Lost in history", kutumbos: "Permanent & retrievable" },
-  { feature: "Tooling", others: "5+ fragmented tools", kutumbos: "Single control center" },
-  { feature: "Management Style", others: "Reactive & chaotic", kutumbos: "Proactive & organized" },
-  { feature: "Privacy", others: "Data used for ads", kutumbos: "Absolute zero tracking" },
+  { feature: "Chat-based", kutumbos: "Organized" },
+  { feature: "Memory-based", kutumbos: "Clear records" },
+  { feature: "Scattered", kutumbos: "One place" },
+  { feature: "Reactive", kutumbos: "In control" },
 ];
 
 export function Comparison() {
   return (
-    <section className="py-24 lg:py-32 bg-background border-t border-white/5 relative">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-20">
-          <h3 className="text-4xl md:text-6xl font-display font-bold text-white">
-            Why This Is <span className="text-amber-400">Not</span> Another App
+    <section className="py-24 lg:py-32 bg-background border-t border-border relative">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h3 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-8">
+            Why this actually works
           </h3>
+          
+          <div className="inline-flex flex-col items-start gap-2 text-muted-foreground text-lg italic mb-8 mx-auto p-6 rounded-2xl bg-secondary/50 border border-border">
+            <span className="font-medium text-foreground not-italic mb-2">Instead of:</span>
+            <span className="line-through decoration-red-500/50 flex items-center gap-2"><X className="w-4 h-4 text-red-500" /> searching chats</span>
+            <span className="line-through decoration-red-500/50 flex items-center gap-2"><X className="w-4 h-4 text-red-500" /> asking each other</span>
+            <span className="line-through decoration-red-500/50 flex items-center gap-2"><X className="w-4 h-4 text-red-500" /> trying to remember</span>
+            <span className="mt-4 font-bold text-amber-600 not-italic text-xl">You just open one place and see everything.</span>
+          </div>
         </div>
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="bg-navy-900 rounded-3xl border border-white/10 overflow-hidden shadow-2xl relative"
+          className="bg-card rounded-3xl border border-border overflow-hidden shadow-2xl relative"
         >
-          {/* VS Badge */}
-          <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 bg-navy-900 border border-white/10 px-4 py-1 rounded-full text-xs font-bold text-white/50 z-20 hidden md:block">
-            VS
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 bg-white/5 border-b border-white/10 text-sm md:text-lg font-bold">
-            <div className="hidden md:block p-6 text-white/60">Capabilities</div>
-            <div className="p-6 text-center text-white/40 border-r border-white/5">The Old Way</div>
-            <div className="p-6 text-center text-amber-400 bg-amber-500/5 relative overflow-hidden">
-              <div className="absolute inset-x-0 top-0 h-1 bg-amber-400"></div>
-              KutumbOS
+          <div className="grid grid-cols-2 bg-secondary/50 border-b border-border text-base md:text-lg font-bold">
+            <div className="p-6 text-center text-muted-foreground border-r border-border">Today</div>
+            <div className="p-6 text-center text-amber-600 bg-amber-500/5 relative overflow-hidden">
+              <div className="absolute inset-x-0 top-0 h-1 bg-amber-500"></div>
+              With KutumbOS
             </div>
           </div>
           
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-border">
             {rows.map((row, i) => (
-              <div key={i} className="grid grid-cols-1 md:grid-cols-3 items-stretch hover:bg-white/[0.02] transition-colors">
-                <div className="p-6 font-medium text-white/80 hidden md:flex items-center">
-                  {row.feature}
+              <div key={i} className="grid grid-cols-2 items-stretch hover:bg-secondary/30 transition-colors">
+                
+                <div className="p-6 text-center flex flex-col items-center justify-center gap-3 text-muted-foreground border-r border-border">
+                  <span>{row.feature}</span>
                 </div>
                 
-                {/* Mobile Label */}
-                <div className="p-4 md:hidden font-medium text-white/80 border-b border-white/5 bg-white/5 text-center">
-                  {row.feature}
-                </div>
-                
-                <div className="p-6 text-center flex flex-col items-center justify-center gap-3 text-white/40 border-r border-white/5">
-                  <X className="w-5 h-5 text-red-500/50" />
-                  <span className="line-through decoration-white/20">{row.others}</span>
-                </div>
-                
-                <div className="p-6 text-center flex flex-col items-center justify-center gap-3 text-white font-bold bg-amber-500/5 relative">
+                <div className="p-6 text-center flex flex-col items-center justify-center gap-3 text-foreground font-bold bg-amber-500/5 relative">
                   <div className="absolute inset-y-0 left-0 w-[1px] bg-amber-500/20"></div>
                   <div className="absolute inset-y-0 right-0 w-[1px] bg-amber-500/20"></div>
-                  <Check className="w-6 h-6 text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]" />
+                  <Check className="w-6 h-6 text-amber-500" />
                   <span>{row.kutumbos}</span>
                 </div>
               </div>
