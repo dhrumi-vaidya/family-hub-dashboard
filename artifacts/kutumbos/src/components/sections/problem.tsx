@@ -3,29 +3,29 @@ import { Wallet, HeartPulse, ListTodo, UserX } from "lucide-react";
 
 const problems = [
   {
-    title: "Money Chaos",
-    description: "No clear record of who spent what, where money is going, or if you're overspending.",
+    title: "Who paid for this?",
+    description: "At the end of the month, no one really knows where the money went.",
     icon: Wallet,
     badge: "HIGH RISK",
-    color: "text-red-400"
+    color: "text-red-500"
   },
   {
-    title: "Health Risk",
-    description: "Medical records are lost, scattered, or unavailable when urgently needed.",
+    title: "Where is that report?",
+    description: "You need a medical report urgently… and it's buried somewhere in photos or chats.",
     icon: HeartPulse,
     badge: "CRITICAL",
     color: "text-rose-500"
   },
   {
-    title: "Responsibility Confusion",
-    description: "Tasks are discussed but not tracked. Things get missed continuously.",
+    title: "I told you to do this",
+    description: "Tasks are discussed, not tracked. So they get missed.",
     icon: ListTodo,
     badge: "FREQUENT",
-    color: "text-amber-400"
+    color: "text-amber-500"
   },
   {
-    title: "Dependency",
-    description: "One family member manages everything → single point of failure.",
+    title: "Ask mom/dad, they know everything",
+    description: "One person handles everything. If they're busy, everything stops.",
     icon: UserX,
     badge: "FRAGILE",
     color: "text-orange-500"
@@ -34,14 +34,11 @@ const problems = [
 
 export function Problem() {
   return (
-    <section className="py-24 lg:py-32 bg-background bg-grid relative border-b border-white/5">
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background z-0 pointer-events-none"></div>
-      
+    <section className="py-24 lg:py-32 bg-secondary/30 relative border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-20">
-          <h2 className="text-sm font-bold tracking-widest text-amber-400 uppercase mb-4">The Status Quo</h2>
-          <h3 className="text-4xl md:text-6xl font-display font-bold text-white tracking-tight">
-            What's Actually <span className="text-red-400/90 italic">Broken</span>
+          <h3 className="text-4xl md:text-6xl font-display font-bold text-foreground tracking-tight">
+            This probably sounds <span className="text-amber-500 italic">familiar</span>
           </h3>
         </div>
 
@@ -53,18 +50,18 @@ export function Problem() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1, duration: 0.5 }}
-              className="bg-navy-900/50 backdrop-blur-sm rounded-2xl p-8 border border-white/5 hover:border-white/10 border-l-amber-500/50 hover:border-l-amber-400 shadow-2xl shadow-black/20 hover:-translate-y-1 transition-all duration-300 relative group"
+              className="bg-card backdrop-blur-sm rounded-2xl p-8 border border-border hover:border-border/80 border-l-amber-500/50 hover:border-l-amber-500 shadow-xl hover:-translate-y-1 transition-all duration-300 relative group"
             >
               <div className="absolute top-6 right-6">
-                <span className={`text-[10px] font-bold px-2 py-1 rounded bg-white/5 border border-white/10 ${problem.color}`}>
+                <span className={`text-[10px] font-bold px-2 py-1 rounded bg-primary/5 border border-primary/10 ${problem.color}`}>
                   {problem.badge}
                 </span>
               </div>
               
-              <div className="w-14 h-14 bg-white/5 rounded-xl flex items-center justify-center mb-8 border border-white/10 group-hover:scale-110 transition-transform">
+              <div className="w-14 h-14 bg-primary/5 rounded-xl flex items-center justify-center mb-8 border border-primary/10 group-hover:scale-110 transition-transform">
                 <problem.icon className={`w-7 h-7 ${problem.color}`} />
               </div>
-              <h4 className="text-xl font-bold text-white mb-3 tracking-wide">{problem.title}</h4>
+              <h4 className="text-xl font-bold text-foreground mb-3 tracking-wide">{problem.title}</h4>
               <p className="text-muted-foreground leading-relaxed">
                 {problem.description}
               </p>
