@@ -27,46 +27,10 @@ interface HealthRecord {
   thumbnail?: string;
 }
 
-const healthRecords: HealthRecord[] = [
-  {
-    id: 1,
-    type: 'Report',
-    member: 'Anita Sharma',
-    visitDate: '28 Dec 2025',
-    uploadDate: '29 Dec 2025',
-    uploadedBy: 'Vikram Sharma',
-    emergencyAccessed: false,
-  },
-  {
-    id: 2,
-    type: 'Prescription',
-    member: 'Rajesh Sharma',
-    visitDate: '20 Dec 2025',
-    uploadDate: '21 Dec 2025',
-    uploadedBy: 'Priya Sharma',
-    emergencyAccessed: true,
-  },
-  {
-    id: 3,
-    type: 'Bill',
-    member: 'Vikram Sharma',
-    visitDate: '15 Dec 2025',
-    uploadDate: '15 Dec 2025',
-    uploadedBy: 'Vikram Sharma',
-    emergencyAccessed: false,
-  },
-  {
-    id: 4,
-    type: 'Report',
-    member: 'Priya Sharma',
-    visitDate: '10 Dec 2025',
-    uploadDate: '12 Dec 2025',
-    uploadedBy: 'Anita Sharma',
-    emergencyAccessed: false,
-  },
-];
+// No sample data - all records are user-uploaded
+const healthRecords: HealthRecord[] = [];
 
-const members = ['All Members', 'Anita Sharma', 'Rajesh Sharma', 'Vikram Sharma', 'Priya Sharma'];
+const members = ['All Members'];
 const recordTypes = ['All Types', 'Prescription', 'Report', 'Bill'];
 
 const getRecordIcon = (type: string) => {

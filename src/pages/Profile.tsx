@@ -13,18 +13,21 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Hint } from '@/components/onboarding/Hint';
 
 export default function Profile() {
   const { mode } = useApp();
+  const { user } = useAuth();
+
   const [profile, setProfile] = useState({
-    name: 'Rajesh Kumar',
-    email: 'rajesh.kumar@email.com',
-    phone: '+91 98765 43210',
-    dateOfBirth: '1985-03-15',
-    bloodGroup: 'O+',
-    emergencyContact: '+91 98765 43211',
-    role: 'Head of Family',
+    name: '',
+    email: user?.email || '',
+    phone: '',
+    dateOfBirth: '',
+    bloodGroup: '',
+    emergencyContact: '',
+    role: '',
   });
 
   return (
@@ -57,9 +60,8 @@ export default function Profile() {
               <AvatarImage src="/placeholder.svg" alt={profile.name} />
               <AvatarFallback className="text-2xl">
                 {profile.name
-                  .split(' ')
-                  .map((n) => n[0])
-                  .join('')}
+                  ? profile.name.split(' ').map((n) => n[0]).join('')
+                  : <User className="h-8 w-8" />}
               </AvatarFallback>
             </Avatar>
             <div className="space-y-2">

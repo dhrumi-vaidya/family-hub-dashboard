@@ -4,7 +4,6 @@ import { CheckSquare, Clock, Heart, FileText, Wallet, Bell, AlertCircle } from '
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApp } from '@/contexts/AppContext';
 import { cn } from '@/lib/utils';
@@ -21,21 +20,10 @@ export default function MemberDashboard() {
     }
   }, [isAuthenticated, navigate]);
 
-  // Sample data for member view
-  const pendingTasks = [
-    { id: '1', title: 'Take morning medicine', dueTime: '8:00 AM', status: 'pending' as const },
-    { id: '2', title: 'Pick up groceries', dueTime: '6:00 PM', status: 'pending' as const },
-  ];
-
-  const recentHealthRecords = [
-    { id: '1', type: 'Blood Report', date: '28 Dec 2025' },
-    { id: '2', type: 'Prescription', date: '25 Dec 2025' },
-  ];
-
-  const notifications = [
-    { id: '1', message: 'New responsibility assigned by Rahul', time: '2 hours ago' },
-    { id: '2', message: 'Health record uploaded for you', time: '1 day ago' },
-  ];
+  // Real data only - no dummy data
+  const pendingTasks: { id: string; title: string; dueTime: string; status: 'pending' }[] = [];
+  const recentHealthRecords: { id: string; type: string; date: string }[] = [];
+  const notifications: { id: string; message: string; time: string }[] = [];
 
   const handleConfirmTask = (taskId: string) => {
     // In real app, this would update the task status
@@ -210,21 +198,10 @@ export default function MemberDashboard() {
           </CardHeader>
           <CardContent>
             <div className="mb-3">
-              <div className="flex items-baseline gap-2 flex-wrap">
-                <span className={cn(
-                  "font-bold text-foreground",
-                  isSimpleMode ? "text-3xl sm:text-4xl" : "text-2xl sm:text-3xl"
-                )}>₹45,000</span>
-                <span className={cn(
-                  "text-muted-foreground",
-                  isSimpleMode ? "text-base" : "text-sm"
-                )}>/ ₹60,000</span>
-              </div>
-              <Progress value={75} className="mt-3 h-2" />
               <p className={cn(
-                "mt-2 text-muted-foreground",
+                "text-muted-foreground",
                 isSimpleMode ? "text-base" : "text-sm"
-              )}>75% of family budget used</p>
+              )}>No expenses recorded yet.</p>
             </div>
             {isSimpleMode && (
               <p className="text-sm text-muted-foreground mt-4">

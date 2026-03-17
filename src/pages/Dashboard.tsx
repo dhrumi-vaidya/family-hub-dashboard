@@ -23,8 +23,8 @@ export default function Dashboard() {
   const classes = getModeClasses(mode);
   const [view, setView] = useState<'family' | 'personal'>('family');
 
-  // Check if there's any data (for empty state)
-  const hasData = true; // In real app, this would check actual data
+  // Show empty state for new families with no data
+  const hasData = false; // TODO: derive from real data once API is connected
 
   return (
     <div className="mx-auto max-w-7xl">

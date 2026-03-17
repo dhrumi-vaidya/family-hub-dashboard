@@ -5,7 +5,7 @@ import { useApp } from '@/contexts/AppContext';
 export function MembersCard() {
   const { mode, currentFamily } = useApp();
   
-  const adminCount = 2;
+  const adminCount = 0;
 
   return (
     <StatCard

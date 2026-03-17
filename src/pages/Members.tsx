@@ -37,48 +37,8 @@ interface Member {
   avatar: string;
 }
 
-const initialMembers: Member[] = [
-  {
-    id: 1,
-    name: 'Rajesh Sharma',
-    age: 52,
-    role: 'Admin',
-    permissions: ['Read', 'Write', 'Confirm'],
-    avatar: 'RS',
-  },
-  {
-    id: 2,
-    name: 'Anita Sharma',
-    age: 48,
-    role: 'Admin',
-    permissions: ['Read', 'Write', 'Confirm'],
-    avatar: 'AS',
-  },
-  {
-    id: 3,
-    name: 'Vikram Sharma',
-    age: 25,
-    role: 'Member',
-    permissions: ['Read', 'Confirm'],
-    avatar: 'VS',
-  },
-  {
-    id: 4,
-    name: 'Priya Sharma',
-    age: 22,
-    role: 'Member',
-    permissions: ['Read', 'Confirm'],
-    avatar: 'PS',
-  },
-  {
-    id: 5,
-    name: 'Shanti Devi',
-    age: 75,
-    role: 'Member',
-    permissions: ['Read'],
-    avatar: 'SD',
-  },
-];
+// No sample data - members are real users who joined the family
+const initialMembers: Member[] = [];
 
 const permissionIcons = {
   Read: Eye,

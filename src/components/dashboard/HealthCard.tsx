@@ -5,14 +5,8 @@ import { useApp } from '@/contexts/AppContext';
 export function HealthCard() {
   const { mode } = useApp();
   
-  // Sample data - in real app this would come from context/API
-  const lastRecord = {
-    member: 'Anita Sharma',
-    type: 'Blood Report',
-    date: '28 Dec 2025',
-  };
-  
-  const hasRecords = true; // Toggle for empty state
+  const lastRecord: { member: string; type: string; date: string } | null = null;
+  const hasRecords = false;
 
   return (
     <StatCard

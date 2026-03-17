@@ -23,61 +23,10 @@ import { LoadingSkeleton, ErrorState } from '@/components/ui/page-states';
 import { AdminOnly, useIsAdmin } from '@/components/ui/role-visibility';
 import { toast } from 'sonner';
 
-const initialResponsibilities: Responsibility[] = [
-  {
-    id: 1,
-    title: 'Pay electricity bill',
-    assignee: 'Vikram Sharma',
-    status: 'pending',
-    recurrence: 'monthly',
-    dueDate: '9 Jan 2026',
-  },
-  {
-    id: 2,
-    title: 'School fees payment',
-    assignee: 'Rajesh Sharma',
-    status: 'escalated',
-    recurrence: 'monthly',
-    dueDate: '5 Jan 2026',
-    escalatedTo: 'Anita Sharma',
-  },
-  {
-    id: 3,
-    title: 'Weekly groceries',
-    assignee: 'Anita Sharma',
-    status: 'confirmed',
-    recurrence: 'weekly',
-    dueDate: '8 Jan 2026',
-    confirmedAt: '8 Jan 2026, 10:30 AM',
-    confirmedBy: 'Anita Sharma',
-  },
-  {
-    id: 4,
-    title: 'Medicine refill for Dadaji',
-    assignee: 'Priya Sharma',
-    status: 'overdue',
-    recurrence: 'monthly',
-    dueDate: '3 Jan 2026',
-  },
-  {
-    id: 5,
-    title: 'Take morning medicine',
-    assignee: 'Shanti Devi',
-    status: 'pending',
-    recurrence: 'daily',
-    dueDate: '9 Jan 2026',
-  },
-  {
-    id: 6,
-    title: 'Water the plants',
-    assignee: 'Priya Sharma',
-    status: 'pending',
-    recurrence: 'daily',
-    dueDate: '10 Jan 2026',
-  },
-];
+// No sample data - responsibilities are created by admins
+const initialResponsibilities: Responsibility[] = [];
 
-const familyMembers = ['All Members', 'Vikram Sharma', 'Rajesh Sharma', 'Anita Sharma', 'Priya Sharma', 'Shanti Devi'];
+const familyMembers = ['All Members'];
 const statusOptions = ['All Status', 'Pending', 'Overdue', 'Escalated', 'Confirmed'];
 
 export default function Responsibilities() {

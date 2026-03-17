@@ -7,8 +7,8 @@ export function ResponsibilitiesCard() {
   const { mode } = useApp();
   
   const stats = {
-    pending: 4,
-    overdue: 1,
+    pending: 0,
+    overdue: 0,
   };
 
   return (

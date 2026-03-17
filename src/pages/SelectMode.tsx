@@ -36,7 +36,7 @@ export default function SelectMode() {
     if (isModeSelected) {
       // Sync selected family to AppContext
       setCurrentFamily(selectedFamily);
-      navigate(user?.role === 'admin' ? '/' : '/member-dashboard');
+      navigate(selectedFamily?.role === 'FAMILY_ADMIN' ? '/' : '/member-dashboard');
     }
   }, [isAuthenticated, selectedFamily, user, navigate, setCurrentFamily, isModeSelected]);
 
@@ -50,7 +50,7 @@ export default function SelectMode() {
     }
 
     // Redirect based on role
-    if (user?.role === 'admin') {
+    if (selectedFamily?.role === 'FAMILY_ADMIN') {
       navigate('/');
     } else {
       navigate('/member-dashboard');

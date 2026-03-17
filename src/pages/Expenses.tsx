@@ -19,7 +19,6 @@ import { ExpenseChart } from '@/components/dashboard/ExpenseChart';
 import { BudgetChart } from '@/components/dashboard/BudgetChart';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { subDays } from 'date-fns';
 
 interface Expense {
   id: string;
@@ -30,25 +29,11 @@ interface Expense {
   type: 'family' | 'personal';
 }
 
-// Sample data
-const initialExpenses: Expense[] = [
-  { id: '1', amount: 2500, category: 'Food', note: 'Weekly groceries', date: new Date(), type: 'family' },
-  { id: '2', amount: 150, category: 'Food', note: 'Lunch at office', date: new Date(), type: 'personal' },
-  { id: '3', amount: 800, category: 'Travel', note: 'Cab to airport', date: subDays(new Date(), 1), type: 'family' },
-  { id: '4', amount: 3500, category: 'Utilities', note: 'Electricity bill', date: subDays(new Date(), 2), type: 'family' },
-  { id: '5', amount: 500, category: 'Medical', note: 'Medicines', date: subDays(new Date(), 3), type: 'personal' },
-];
+// No sample data - all data is user-entered
+const initialExpenses: Expense[] = [];
 
-const familyInsights = [
-  { type: 'warning' as const, message: 'Food expenses crossed 30% of your budget.' },
-  { type: 'success' as const, message: 'Utility bills are 15% lower than last month.' },
-  { type: 'info' as const, message: 'Travel expenses increased this week.' },
-];
-
-const personalInsights = [
-  { type: 'success' as const, message: 'You spent 20% less on subscriptions this month.' },
-  { type: 'warning' as const, message: 'Daily spending is higher than last month.' },
-];
+const familyInsights: { type: 'warning' | 'success' | 'info'; message: string }[] = [];
+const personalInsights: { type: 'warning' | 'success' | 'info'; message: string }[] = [];
 
 const months = [
   'January', 'February', 'March', 'April', 'May', 'June',
