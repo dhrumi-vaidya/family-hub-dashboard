@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "KutumbOS Landing Page"
+version = "1.0.0"
+id = "artifacts/kutumbos"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+localPort = 22709
+name = "web"
+paths = ["/"]
+
+[services.development]
+run = "pnpm --filter @workspace/kutumbos run dev"
+
+[services.env]
+PORT = "22709"
+BASE_PATH = "/"
+
+[services.production]
+build = ["pnpm", "--filter", "@workspace/kutumbos", "run", "build"]
+publicDir = "artifacts/kutumbos/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"

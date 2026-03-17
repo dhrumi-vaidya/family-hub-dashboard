@@ -1,0 +1,17 @@
+packages:
+  "framer-motion": "For premium scroll animations and smooth page transitions"
+  "react-hook-form": "For robust form state management in the waitlist modal"
+  "@hookform/resolvers": "For Zod validation integration with react-hook-form"
+  "zod": "For waitlist schema validation"
+
+images:
+  - path: "artifacts/kutumbos/public/images/hero-abstract.png"
+    description: "Abstract minimal gradient mesh in deep navy blue and warm saffron orange tones, very subtle and elegant, suitable for a trustworthy financial/family app background"
+    aspect_ratio: "16:9"
+  - path: "artifacts/kutumbos/public/images/family-pattern.png"
+    description: "Subtle, elegant line-art pattern depicting abstract multi-generational Indian family elements, in a very light beige/warm grey color on a transparent background"
+    aspect_ratio: "16:9"
+
+notes:
+  - Using generated React Query hooks from @workspace/api-client-react for /api/waitlist endpoints
+  - The application is a single-page marketing landing page with smooth scroll sections
