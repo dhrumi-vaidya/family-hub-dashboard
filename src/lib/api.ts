@@ -225,6 +225,26 @@ class ApiClient {
     return this.request<any>(`/auth/audit-logs?${params.toString()}`);
   }
 
+  // Profile endpoints
+  async getProfile() {
+    return this.request<any>('/profile');
+  }
+
+  async updateProfile(data: {
+    name?: string;
+    phone?: string;
+    date_of_birth?: string;
+    blood_group?: string;
+    emergency_contact?: string;
+    family_role?: string;
+    photo_base64?: string;
+  }) {
+    return this.request<any>('/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
   // Health check
   async healthCheck() {
     return this.request<any>('/health');

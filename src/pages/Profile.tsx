@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { User, Mail, Phone, Camera, Save, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/contexts/ProfileContext';
 import { Hint } from '@/components/onboarding/Hint';
 import { toast } from 'sonner';
+import { apiClient } from '@/lib/api';
 
 export default function Profile() {
   const { mode } = useApp();
@@ -24,6 +25,7 @@ export default function Profile() {
   const { profile: savedProfile, setProfile: saveProfile } = useProfile();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [saving, setSaving] = useState(false);
 
   const [profile, setProfile] = useState({
     name: savedProfile.name || '',
@@ -36,6 +38,33 @@ export default function Profile() {
   });
 
   const [photoUrl, setPhotoUrl] = useState(savedProfile.photoUrl || '');
+
+  // Load profile from API on mount
+  useEffect(() => {
+    apiClient.getProfile().then((res) => {
+      if (res.success && res.profile) {
+        const p = res.profile;
+        setProfile({
+          name: p.name || savedProfile.name || '',
+          email: user?.email || '',
+          phone: p.phone || '',
+          dateOfBirth: p.date_of_birth || '',
+          bloodGroup: p.blood_group || '',
+          emergencyContact: p.emergency_contact || '',
+          role: p.family_role || '',
+        });
+        if (p.photo_base64) {
+          setPhotoUrl(p.photo_base64);
+          saveProfile({ name: p.name || '', photoUrl: p.photo_base64 });
+        } else if (p.name) {
+          saveProfile({ name: p.name });
+        }
+      }
+    }).catch(() => {
+      // API unavailable — fall back to localStorage silently
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -58,20 +87,43 @@ export default function Profile() {
     reader.readAsDataURL(file);
   };
 
-  const handleSave = () => {
-    saveProfile({ name: profile.name, photoUrl });
-    toast.success('Profile saved successfully');
-    console.log('[Profile] Saved:', {
-      name: profile.name,
-      email: profile.email,
-      phone: profile.phone,
-      dateOfBirth: profile.dateOfBirth,
-      bloodGroup: profile.bloodGroup,
-      emergencyContact: profile.emergencyContact,
-      role: profile.role,
-      hasPhoto: !!photoUrl,
-      savedAt: new Date().toISOString(),
-    });
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await apiClient.updateProfile({
+        name: profile.name,
+        phone: profile.phone,
+        date_of_birth: profile.dateOfBirth,
+        blood_group: profile.bloodGroup,
+        emergency_contact: profile.emergencyContact,
+        family_role: profile.role,
+        photo_base64: photoUrl,
+      });
+
+      if (res.success) {
+        saveProfile({ name: profile.name, photoUrl });
+        toast.success('Profile saved successfully');
+        console.log('[Profile] Saved via API:', {
+          name: profile.name,
+          phone: profile.phone,
+          dateOfBirth: profile.dateOfBirth,
+          bloodGroup: profile.bloodGroup,
+          emergencyContact: profile.emergencyContact,
+          role: profile.role,
+          hasPhoto: !!photoUrl,
+          savedAt: new Date().toISOString(),
+        });
+      } else {
+        toast.error(res.error || 'Failed to save profile');
+      }
+    } catch {
+      // Fallback: save to localStorage only
+      saveProfile({ name: profile.name, photoUrl });
+      toast.success('Profile saved locally');
+      console.log('[Profile] Saved locally (API unavailable)');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const avatarFallback = profile.name
@@ -280,9 +332,9 @@ export default function Profile() {
 
       {/* Save Button */}
       <div className="flex justify-end pt-4">
-        <Button size="lg" className="gap-2" onClick={handleSave}>
+        <Button size="lg" className="gap-2" onClick={handleSave} disabled={saving}>
           <Save className="h-4 w-4" />
-          Save Changes
+          {saving ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
     </div>
