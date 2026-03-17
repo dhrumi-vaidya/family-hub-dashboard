@@ -36,8 +36,10 @@ export default function Dashboard() {
   const { user, selectedFamily } = useAuth();
   const isFast = mode === 'fast';
 
-  const greeting = user?.email ? `Welcome, ${user.email.split('@')[0]}` : 'Welcome';
+  const emailPrefix = user?.email?.split('@')[0] ?? '';
+  const displayName = emailPrefix || selectedFamily?.name || 'there';
   const familyName = selectedFamily?.name ?? 'Your Family';
+  const greeting = `Welcome, ${displayName}`;
 
   if (!hasAnyData) {
     return (
