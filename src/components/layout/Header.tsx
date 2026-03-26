@@ -11,15 +11,23 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/contexts/ProfileContext';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
 
 export function Header() {
   const navigate = useNavigate();
   const { mode, setMode, currentFamily, setCurrentFamily, families, sidebarCollapsed, setSidebarCollapsed } = useApp();
-  const { user, logout } = useAuth();
+  const { user, logout, selectedFamily } = useAuth();
+  const { profile } = useProfile();
 
-  const isAdmin = user?.role === 'admin';
+  const isFamilyAdmin = selectedFamily?.role === 'FAMILY_ADMIN';
+
+  // Prefer saved profile name, then email prefix, then family name
+  const emailPrefix = user?.email?.split('@')[0] ?? '';
+  const displayName = profile.name || emailPrefix || selectedFamily?.name || currentFamily?.name || 'User';
+  const avatarChar = displayName.charAt(0).toUpperCase();
+  const avatarPhoto = profile.photoUrl;
 
   const handleLogout = () => {
     logout();
@@ -42,7 +50,7 @@ export function Header() {
           </Button>
 
           {/* Family Selector - Only show for Admins with multiple families */}
-          {isAdmin && families.length > 1 ? (
+          {isFamilyAdmin && families.length > 1 ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="gap-2 font-medium min-w-0 max-w-48">
@@ -126,16 +134,19 @@ export function Header() {
                 className="rounded-full touch-target"
                 aria-label="User menu"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground font-medium">
-                  {user?.name?.charAt(0) || 'U'}
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground font-medium overflow-hidden">
+                  {avatarPhoto
+                    ? <img src={avatarPhoto} alt={displayName} className="h-full w-full object-cover" />
+                    : <span className="text-sm font-semibold">{avatarChar}</span>
+                  }
                 </div>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <div className="px-2 py-1.5">
-                <p className="font-medium text-foreground">{user?.name || 'Guest'}</p>
+                <p className="font-medium text-foreground">{displayName}</p>
                 <p className="text-sm text-muted-foreground">
-                  {isAdmin ? '👑 Family Admin' : '👤 Family Member'}
+                  {isFamilyAdmin ? '👑 Family Admin' : '👤 Family Member'}
                 </p>
               </div>
               <DropdownMenuSeparator />

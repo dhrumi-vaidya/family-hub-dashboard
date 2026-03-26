@@ -10,6 +10,7 @@ import debugRoutes from './routes/debug';
 import familyRoutes from './routes/family';
 import dashboardRoutes from './routes/dashboard';
 import adminRoutes from './routes/admin';
+import profileRoutes from './routes/profile';
 
 // Load environment variables first
 dotenv.config();
@@ -103,6 +104,7 @@ app.use('/api/debug', debugRoutes);
 app.use('/api/family', familyRoutes);
 app.use('/api', dashboardRoutes); // Dashboard routes are at root level (/api/budget, /api/expenses, etc.)
 app.use('/api/admin', adminRoutes);
+app.use('/api/profile', profileRoutes);
 
 // 404 handler
 app.use('/api/*', (req, res) => {

@@ -1,151 +1,126 @@
-import { useState } from 'react';
 import { useApp } from '@/contexts/AppContext';
-import { ExpenseCard } from '@/components/dashboard/ExpenseCard';
-import { HealthCard } from '@/components/dashboard/HealthCard';
-import { ResponsibilitiesCard } from '@/components/dashboard/ResponsibilitiesCard';
-import { MembersCard } from '@/components/dashboard/MembersCard';
-import { ExpenseChart } from '@/components/dashboard/ExpenseChart';
-import { BudgetChart } from '@/components/dashboard/BudgetChart';
-import { PersonalTasksCard } from '@/components/dashboard/PersonalTasksCard';
-import { PersonalHealthCard } from '@/components/dashboard/PersonalHealthCard';
-import { Hint } from '@/components/onboarding/Hint';
-import { SimpleModeBanner } from '@/components/onboarding/SimpleModeBanner';
-import { PageHeader } from '@/components/ui/page-header';
+import { useAuth } from '@/contexts/AuthContext';
+import { AttentionLayer, type Alert } from '@/components/dashboard/AttentionLayer';
+import { KPIStrip, type KPIData } from '@/components/dashboard/KPIStrip';
+import { QuickActions } from '@/components/dashboard/QuickActions';
+import { ResponsibilitiesPanel, type ResponsibilityItem } from '@/components/dashboard/ResponsibilitiesPanel';
+import { ExpensePanel, type ExpenseSummary } from '@/components/dashboard/ExpensePanel';
+import { HealthPanel, type HealthMemberStatus } from '@/components/dashboard/HealthPanel';
+import { MemberPanel, type MemberStatus } from '@/components/dashboard/MemberPanel';
+import { NotificationsPanel, type Notification } from '@/components/dashboard/NotificationsPanel';
+import { TrendChart, type TrendMonth } from '@/components/dashboard/TrendChart';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { getModeClasses } from '@/lib/design-tokens';
 import { cn } from '@/lib/utils';
-import { Wallet, Heart, FileText, Plus, Home } from 'lucide-react';
+import { Plus, Home } from 'lucide-react';
+
+// ─── Placeholder empty data (replace with real API calls) ───────────────────
+const alerts: Alert[] = [];
+const kpi: KPIData = { overdueTasks: 0, budgetRiskPct: 0, healthAlerts: 0, inactiveMembers: 0 };
+const responsibilities: ResponsibilityItem[] = [];
+const expenses: ExpenseSummary = { totalSpent: 0, totalBudget: 0, categories: [] };
+const healthMembers: HealthMemberStatus[] = [];
+const members: MemberStatus[] = [];
+const notifications: Notification[] = [];
+const trendData: TrendMonth[] = [];
+// ─────────────────────────────────────────────────────────────────────────────
+
+const hasAnyData =
+  responsibilities.length > 0 ||
+  expenses.totalBudget > 0 ||
+  healthMembers.length > 0 ||
+  members.length > 0;
 
 export default function Dashboard() {
-  const { mode, currentFamily } = useApp();
-  const classes = getModeClasses(mode);
-  const [view, setView] = useState<'family' | 'personal'>('family');
+  const { mode } = useApp();
+  const { user, selectedFamily } = useAuth();
+  const isFast = mode === 'fast';
 
-  // Show empty state for new families with no data
-  const hasData = false; // TODO: derive from real data once API is connected
+  const emailPrefix = user?.email?.split('@')[0] ?? '';
+  const displayName = emailPrefix || selectedFamily?.name || 'there';
+  const familyName = selectedFamily?.name ?? 'Your Family';
+  const greeting = `Welcome, ${displayName}`;
+
+  if (!hasAnyData) {
+    return (
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-6">
+          <h1 className={cn('font-semibold text-foreground', isFast ? 'text-xl' : 'text-2xl')}>
+            {greeting}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">{familyName}</p>
+        </div>
+        <EmptyState
+          icon={Home}
+          title="Welcome to KutumbOS"
+          description="Start by adding expenses, health records, or responsibilities to see your family dashboard."
+          action={
+            <>
+              <Button asChild>
+                <a href="/expenses"><Plus className="mr-2 h-4 w-4" />Add Expense</a>
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="/health"><Plus className="mr-2 h-4 w-4" />Upload Health Record</a>
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="/responsibilities"><Plus className="mr-2 h-4 w-4" />Create Responsibility</a>
+              </Button>
+            </>
+          }
+        />
+      </div>
+    );
+  }
 
   return (
-    <div className="mx-auto max-w-7xl">
-      <SimpleModeBanner />
-      
-      {/* Page Header - Consistent across all pages */}
-      <PageHeader
-        title={view === 'family' ? '👨‍👩‍👧‍👦 Family Overview' : '👤 Personal Overview'}
-        subtitle={view === 'family'
-          ? 'Everything important, at one place.'
-          : 'Your personal tasks and budget, at a glance.'}
-        action={
-          <Tabs value={view} onValueChange={(v) => setView(v as 'family' | 'personal')}>
-            <TabsList className={cn(
-              mode === 'simple' ? "h-12" : "h-10"
-            )}>
-              <TabsTrigger 
-                value="family"
-                className={cn(
-                  mode === 'simple' ? "px-6 py-2 text-base" : "px-4 py-1.5 text-sm"
-                )}
-              >
-                Family
-              </TabsTrigger>
-              <TabsTrigger 
-                value="personal"
-                className={cn(
-                  mode === 'simple' ? "px-6 py-2 text-base" : "px-4 py-1.5 text-sm"
-                )}
-              >
-                Personal
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        }
-        className="mb-6 lg:mb-8"
-      />
-      
-      {mode === 'simple' && (
-        <Hint id="dashboard-intro" className="mb-6">
-          {view === 'family'
-            ? 'This is your family dashboard. Click on any card to see more details. Switch to Personal view to see your own stats.'
-            : 'This is your personal dashboard. See your budget, tasks, and health at a glance.'}
-        </Hint>
-      )}
+    <div className="mx-auto max-w-7xl space-y-4 lg:space-y-5">
 
-      {/* Family View */}
-      {view === 'family' && (
-        <div className="space-y-6">
-          {/* Empty State - Using new EmptyState component */}
-          {!hasData ? (
-            <EmptyState
-              icon={Home}
-              title="Welcome to KutumbOS"
-              description="Start by adding expenses, health records, or responsibilities to see your family dashboard."
-              action={
-                <>
-                  <Button size={classes.buttonPrimary as any} asChild>
-                    <a href="/expenses">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Expense
-                    </a>
-                  </Button>
-                  <Button variant="outline" size={classes.buttonSecondary as any} asChild>
-                    <a href="/health">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Upload Health Record
-                    </a>
-                  </Button>
-                  <Button variant="outline" size={classes.buttonSecondary as any} asChild>
-                    <a href="/responsibilities">
-                      <Plus className="mr-2 h-4 w-4" />
-                      Create Responsibility
-                    </a>
-                  </Button>
-                </>
-              }
-            />
-          ) : (
-            <>
-              {/* Stats Grid - Consistent spacing using design tokens */}
-              <div className={cn(classes.gridCols, classes.gridGap)}>
-                <ExpenseCard />
-                <HealthCard />
-                <ResponsibilitiesCard />
-                <MembersCard />
-              </div>
-              
-              {/* Charts Section - Consistent spacing */}
-              <div className={cn(
-                'grid gap-4 lg:gap-6',
-                mode === 'simple' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'
-              )}>
-                <ExpenseChart />
-                <BudgetChart />
-              </div>
-            </>
+      {/* ── Header ── */}
+      <div className={cn(
+        'flex items-start justify-between',
+        isFast ? 'mb-2' : 'mb-4'
+      )}>
+        <div>
+          <h1 className={cn('font-semibold text-foreground', isFast ? 'text-lg' : 'text-2xl')}>
+            {isFast ? familyName : greeting}
+          </h1>
+          {!isFast && (
+            <p className="mt-0.5 text-sm text-muted-foreground">{familyName}</p>
           )}
         </div>
+      </div>
+
+      {/* 1. Attention Layer */}
+      {alerts.length > 0 && (
+        <AttentionLayer alerts={alerts} mode={mode} />
       )}
 
-      {/* Personal View */}
-      {view === 'personal' && (
-        <div className="space-y-6">
-          {/* Personal Charts */}
-          <div className={cn(
-            'grid gap-4 lg:gap-6',
-            mode === 'simple' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'
-          )}>
-            <ExpenseChart personal />
-            <BudgetChart personal />
-          </div>
-          
-          {/* Personal Cards */}
-          <div className={cn(
-            'grid gap-4 lg:gap-6',
-            mode === 'simple' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'
-          )}>
-            <PersonalTasksCard />
-            <PersonalHealthCard />
-          </div>
+      {/* 2. KPI Strip */}
+      <KPIStrip data={kpi} mode={mode} />
+
+      {/* 3. Quick Actions */}
+      <QuickActions mode={mode} />
+
+      {/* 4–9. Main panels */}
+      {isFast ? (
+        // Fast mode: 2-column dense grid
+        <div className="grid gap-4 lg:grid-cols-2">
+          <ResponsibilitiesPanel items={responsibilities} mode={mode} />
+          <ExpensePanel data={expenses} mode={mode} />
+          <HealthPanel members={healthMembers} mode={mode} />
+          <MemberPanel members={members} mode={mode} />
+          <NotificationsPanel notifications={notifications} mode={mode} />
+          <TrendChart data={trendData} mode={mode} />
+        </div>
+      ) : (
+        // Simple mode: single column, full-width cards
+        <div className="space-y-4">
+          <ResponsibilitiesPanel items={responsibilities} mode={mode} />
+          <ExpensePanel data={expenses} mode={mode} />
+          <HealthPanel members={healthMembers} mode={mode} />
+          <MemberPanel members={members} mode={mode} />
+          <NotificationsPanel notifications={notifications} mode={mode} />
+          <TrendChart data={trendData} mode={mode} />
         </div>
       )}
     </div>

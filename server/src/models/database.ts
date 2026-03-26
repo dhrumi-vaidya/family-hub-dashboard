@@ -37,7 +37,8 @@ export enum AuditAction {
   ACCOUNT_LOCKED = 'ACCOUNT_LOCKED',
   ACCOUNT_UNLOCKED = 'ACCOUNT_UNLOCKED',
   EMERGENCY_ACCESS_GRANTED = 'EMERGENCY_ACCESS_GRANTED',
-  EMERGENCY_ACCESS_EXPIRED = 'EMERGENCY_ACCESS_EXPIRED'
+  EMERGENCY_ACCESS_EXPIRED = 'EMERGENCY_ACCESS_EXPIRED',
+  PROFILE_UPDATED = 'PROFILE_UPDATED'
 }
 
 // Database Models
@@ -106,7 +107,20 @@ export interface InviteToken {
   recipient_email: string | null; // Email address of the invited person
 }
 
-// Mock Database Implementation (PostgreSQL-compatible)
+export interface UserProfile {
+  id: string;
+  user_id: string;
+  name: string;
+  phone: string;
+  date_of_birth: string;
+  blood_group: string;
+  emergency_contact: string;
+  family_role: string;
+  photo_base64: string; // base64 encoded image
+  updated_at: Date;
+}
+
+
 class MockDatabase {
   private users: User[] = [];
   private families: Family[] = [];
@@ -114,6 +128,7 @@ class MockDatabase {
   private refreshTokens: RefreshToken[] = [];
   private auditLogs: AuditLog[] = [];
   private inviteTokens: InviteToken[] = [];
+  private userProfiles: UserProfile[] = [];
 
   constructor() {
     this.initializeData();
@@ -515,6 +530,31 @@ class MockDatabase {
     this.inviteTokens[inviteIndex].used_at = new Date();
     this.inviteTokens[inviteIndex].used_by = 'revoked';
     return true;
+  }
+
+  // User profile operations
+  async getProfile(userId: string): Promise<UserProfile | null> {
+    return this.userProfiles.find(p => p.user_id === userId) || null;
+  }
+
+  async upsertProfile(userId: string, data: Omit<UserProfile, 'id' | 'user_id' | 'updated_at'>): Promise<UserProfile> {
+    const existing = this.userProfiles.findIndex(p => p.user_id === userId);
+    if (existing !== -1) {
+      this.userProfiles[existing] = {
+        ...this.userProfiles[existing],
+        ...data,
+        updated_at: new Date(),
+      };
+      return this.userProfiles[existing];
+    }
+    const newProfile: UserProfile = {
+      id: `profile_${Date.now()}`,
+      user_id: userId,
+      ...data,
+      updated_at: new Date(),
+    };
+    this.userProfiles.push(newProfile);
+    return newProfile;
   }
 }
 

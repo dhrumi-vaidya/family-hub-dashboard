@@ -36,7 +36,7 @@ import NewFamilySelect from "./pages/NewFamilySelect";
 import TestPage from "./pages/TestPage";
 import SimpleRegister from "./pages/SimpleRegister";
 import InviteMembers from "./pages/InviteMembers";
-import AuthStatus from "./pages/AuthStatus";
+import { ProfileProvider } from "@/contexts/ProfileContext";
 
 const queryClient = new QueryClient();
 
@@ -159,7 +159,6 @@ const AppRoutes = () => {
       <Route path="/auth-debug" element={<AuthDebug />} />
       <Route path="/auth-test" element={<AuthTest />} />
       <Route path="/permissions-demo" element={<PermissionsDemo />} />
-      <Route path="/auth-status" element={<AuthStatus />} />
       <Route path="/test" element={<TestPage />} />
 
       {/* Super Admin Routes */}
@@ -202,11 +201,13 @@ const App = () => (
       <TooltipProvider>
         <AuthProvider>
           <AppProvider>
+            <ProfileProvider>
             <Toaster />
             <Sonner />
             <BrowserRouter>
               <AppRoutes />
             </BrowserRouter>
+            </ProfileProvider>
           </AppProvider>
         </AuthProvider>
       </TooltipProvider>
