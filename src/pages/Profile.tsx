@@ -24,7 +24,7 @@ import { apiClient } from '@/lib/api';
 /** Strip optional +91 / 0 prefix then check 10-digit Indian mobile (starts 6-9) */
 function validateIndianPhone(raw: string): string | null {
   if (!raw) return null; // optional field
-  const stripped = raw.trim().replace(/^(\+91|0)/, '').replace(/\s+/g, '');
+  const stripped = raw.trim().replace(/\s+/g, '');
   if (!/^[6-9]\d{9}$/.test(stripped)) {
     return 'Enter a valid 10-digit Indian mobile number (starts with 6–9)';
   }
@@ -287,7 +287,7 @@ export default function Profile() {
           <CardDescription>Basic details about you</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 items-start">
             {/* Name */}
             <div className="space-y-1">
               <Label htmlFor="name">Full Name <span className="text-destructive">*</span></Label>
@@ -304,15 +304,18 @@ export default function Profile() {
             </div>
 
             {/* Family Role — read-only */}
-            <div className="space-y-1">
+            <div className="space-y-1 self-start">
               <Label htmlFor="role" className="flex items-center gap-1">
                 Family Role
-                <Lock className="h-3 w-3 text-muted-foreground" />
+                {/* <Lock className="h-3 w-3 text-muted-foreground" /> */}
               </Label>
-              <div className="flex h-10 items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground select-none">
-                {displayRole || '—'}
-              </div>
-              <p className="text-xs text-muted-foreground">Assigned by your family admin</p>
+              <Input
+                id="role"
+                value={displayRole || '—'}
+                readOnly
+                className="bg-muted text-muted-foreground cursor-not-allowed"
+              />
+              {/* <p className="text-xs text-muted-foreground">Assigned by your family admin</p> */}
             </div>
           </div>
 
@@ -332,16 +335,26 @@ export default function Profile() {
             {/* Phone */}
             <div className="space-y-1">
               <Label htmlFor="phone">Phone Number</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={profile.phone}
-                maxLength={13} // +91XXXXXXXXXX
-                onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                onBlur={() => handleBlur('phone')}
-                placeholder="9XXXXXXXXX"
-                aria-invalid={!!errors.phone}
-              />
+              <div className="flex">
+                <div className="flex items-center justify-center rounded-l-md border border-r-0 border-input bg-muted px-3 text-sm text-muted-foreground">
+                  +91
+                </div>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={profile.phone}
+                  maxLength={10}
+                  onChange={(e) => {
+                    // Only allow digits and limit to 10
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setProfile({ ...profile, phone: value });
+                  }}
+                  onBlur={() => handleBlur('phone')}
+                  placeholder="9876543210"
+                  className="rounded-l-none"
+                  aria-invalid={!!errors.phone}
+                />
+              </div>
               {errors.phone
                 ? <p className="text-xs text-destructive">{errors.phone}</p>
                 : <p className="text-xs text-muted-foreground">10-digit Indian mobile number</p>
@@ -395,16 +408,26 @@ export default function Profile() {
 
             <div className="space-y-1">
               <Label htmlFor="emergency">Emergency Contact</Label>
-              <Input
-                id="emergency"
-                type="tel"
-                value={profile.emergencyContact}
-                maxLength={13}
-                onChange={(e) => setProfile({ ...profile, emergencyContact: e.target.value })}
-                onBlur={() => handleBlur('emergencyContact')}
-                placeholder="9XXXXXXXXX"
-                aria-invalid={!!errors.emergencyContact}
-              />
+              <div className="flex">
+                <div className="flex items-center justify-center rounded-l-md border border-r-0 border-input bg-muted px-3 text-sm text-muted-foreground">
+                  +91
+                </div>
+                <Input
+                  id="emergency"
+                  type="tel"
+                  value={profile.emergencyContact}
+                  maxLength={10}
+                  onChange={(e) => {
+                    // Only allow digits and limit to 10
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setProfile({ ...profile, emergencyContact: value });
+                  }}
+                  onBlur={() => handleBlur('emergencyContact')}
+                  placeholder="9876543210"
+                  className="rounded-l-none"
+                  aria-invalid={!!errors.emergencyContact}
+                />
+              </div>
               {errors.emergencyContact
                 ? <p className="text-xs text-destructive">{errors.emergencyContact}</p>
                 : <p className="text-xs text-muted-foreground">10-digit Indian mobile number</p>
