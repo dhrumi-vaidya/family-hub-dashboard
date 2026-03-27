@@ -37,6 +37,7 @@ import NewFamilySelect from "./pages/NewFamilySelect";
 import TestPage from "./pages/TestPage";
 import SimpleRegister from "./pages/SimpleRegister";
 import InviteMembers from "./pages/InviteMembers";
+import LandingPage from "./pages/landing/LandingPage";
 import { ProfileProvider } from "@/contexts/ProfileContext";
 
 const queryClient = new QueryClient();
@@ -167,6 +168,7 @@ const AppRoutes = () => {
       />
 
       {/* Public Routes */}
+      <Route path="/landing" element={<LandingPage />} />
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/new-login" element={<PublicRoute><NewLogin /></PublicRoute>} />
       <Route path="/new-register" element={<PublicRoute><NewRegister /></PublicRoute>} />
