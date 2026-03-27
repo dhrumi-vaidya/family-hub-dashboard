@@ -37,7 +37,6 @@ import NewFamilySelect from "./pages/NewFamilySelect";
 import TestPage from "./pages/TestPage";
 import SimpleRegister from "./pages/SimpleRegister";
 import InviteMembers from "./pages/InviteMembers";
-import LandingPage from "./pages/landing/LandingPage";
 import { ProfileProvider } from "@/contexts/ProfileContext";
 
 const queryClient = new QueryClient();

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '@/contexts/ThemeContext';
 import {
   Moon, Sun, Menu, X, Smartphone, Zap, Shield, ArrowRight,
   IndianRupee, FileHeart, ListChecks, CircleCheckBig,
@@ -63,7 +64,8 @@ const FAMILY_SUGGESTIONS = ['Sharma Family', 'Patel Family', 'Gupta Family', 'Me
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const [dark, setDark] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const dark = theme === 'dark';
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [activity, setActivity] = useState<ActivityItem[]>(INIT_ACTIVITY);
@@ -119,8 +121,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className={dark ? 'dark' : ''}>
-      <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
 
         {/* ── Navbar ── */}
         <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur border-b border-border/40 transition-all">
@@ -140,7 +141,7 @@ export default function LandingPage() {
                 ))}
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => setDark(!dark)} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Toggle theme">
+                <button onClick={toggleTheme} className="p-2 rounded-lg hover:bg-secondary transition-colors" aria-label="Toggle theme">
                   {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                 </button>
                 <a href="#final-cta" onClick={() => navigate('/simple-register')} className="hidden md:inline-flex items-center px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">
@@ -559,6 +560,5 @@ export default function LandingPage() {
           </div>
         </footer>
       </div>
-    </div>
   );
 }
