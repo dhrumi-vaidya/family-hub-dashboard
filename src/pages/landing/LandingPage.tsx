@@ -7,7 +7,7 @@ import {
   CircleHelp, FileSearch, TriangleAlert, Brain,
   MessageCircle, LayoutDashboard, Database, Puzzle, Users,
   ShieldCheck, EyeOff, Ban, Lock, TrendingUp, ChevronDown,
-  House,
+  House, UserPlus,
 } from 'lucide-react';
 
 // ── Scroll-reveal hook ────────────────────────────────────────────────────────
@@ -73,6 +73,9 @@ export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [onboardStep, setOnboardStep] = useState(0);
   const [familyName, setFamilyName] = useState('');
+  const [adminEmail, setAdminEmail] = useState('');
+  const [inviteEmails, setInviteEmails] = useState<string[]>([]);
+  const [currentEmail, setCurrentEmail] = useState('');
   const [scores, setScores] = useState({ spending: 0, tasks: 0, records: 0 });
   const [scoresVisible, setScoresVisible] = useState(false);
   const scoresRef = useRef<HTMLDivElement>(null);
@@ -111,6 +114,30 @@ export default function LandingPage() {
     setTimeout(() => setActivity(prev => prev.map(a => a.id === item.id ? { ...a, fresh: false } : a)), 600);
     setTimeout(() => setActiveTab(-1), 400);
     setTimeout(() => setLastAdded(null), 2000);
+  };
+
+  const handleAddEmail = () => {
+    const email = currentEmail.trim();
+    if (email && !inviteEmails.includes(email)) {
+      setInviteEmails(prev => [...prev, email]);
+      setCurrentEmail('');
+    }
+  };
+
+  const handleRemoveEmail = (email: string) => {
+    setInviteEmails(prev => prev.filter(e => e !== email));
+  };
+
+  const handleGoToDashboard = () => {
+    // Prepare onboarding data
+    const onboardingData = {
+      familyName: familyName.trim(),
+      adminEmail: adminEmail.trim(),
+      inviteEmails: inviteEmails,
+      fromOnboarding: true
+    };
+    // Navigate with state instead of localStorage
+    navigate('/dashboard', { state: onboardingData });
   };
 
   const PROBLEM_STORIES = [
@@ -368,13 +395,13 @@ export default function LandingPage() {
               </Reveal>
               {/* Step tabs */}
               <div className="flex items-center justify-center gap-2 mb-10">
-                {[{ Icon: House, label: 'Create Family' }, { Icon: Users, label: 'Invite Members' }, { Icon: LayoutDashboard, label: 'Start Using' }].map(({ Icon, label }, i) => (
+                {[{ Icon: House, label: 'Create Family' }, { Icon: UserPlus, label: 'Admin Email' }, { Icon: Users, label: 'Invite Members' }, { Icon: LayoutDashboard, label: 'Go to Dashboard' }].map(({ Icon, label }, i) => (
                   <div key={label} className="flex items-center gap-2">
                     <button onClick={() => setOnboardStep(i)}
                       className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${onboardStep === i ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground'}`}>
                       <Icon className="w-3 h-3" /><span className="hidden sm:inline">{label}</span><span className="sm:hidden">{i+1}</span>
                     </button>
-                    {i < 2 && <div className="w-8 h-0.5 rounded-full bg-border" />}
+                    {i < 3 && <div className="w-8 h-0.5 rounded-full bg-border" />}
                   </div>
                 ))}
               </div>
@@ -402,25 +429,80 @@ export default function LandingPage() {
                   {onboardStep === 1 && (
                     <div className="space-y-4">
                       <div className="flex items-center gap-3 mb-2">
-                        <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center"><Users className="w-4 h-4 text-primary" /></div>
-                        <div><h3 className="font-semibold">Invite your family</h3><p className="text-xs text-muted-foreground">Share a link or enter their email</p></div>
+                        <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center"><UserPlus className="w-4 h-4 text-primary" /></div>
+                        <div><h3 className="font-semibold">Your admin email</h3><p className="text-xs text-muted-foreground">You'll use this to log in and manage {familyName || 'your family'}</p></div>
                       </div>
-                      <input type="email" placeholder="member@email.com" className="w-full p-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+                      <input type="email" placeholder="admin@email.com" value={adminEmail}
+                        onChange={e => setAdminEmail(e.target.value)}
+                        className="w-full p-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30" />
                       <button onClick={() => setOnboardStep(2)}
                         className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">
-                        Send Invite <ArrowRight className="w-4 h-4" />
+                        Continue <ArrowRight className="w-4 h-4" />
                       </button>
-                      <button onClick={() => setOnboardStep(2)} className="w-full text-xs text-muted-foreground hover:text-foreground text-center">Skip for now →</button>
+                      <button onClick={() => setOnboardStep(0)} className="w-full text-xs text-muted-foreground hover:text-foreground text-center">← Back</button>
                     </div>
                   )}
                   {onboardStep === 2 && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center"><Users className="w-4 h-4 text-primary" /></div>
+                        <div><h3 className="font-semibold">Invite your family</h3><p className="text-xs text-muted-foreground">Add family members to get started</p></div>
+                      </div>
+                      
+                      {/* Email input */}
+                      <div className="flex gap-2">
+                        <input 
+                          type="email" 
+                          placeholder="member@email.com" 
+                          value={currentEmail}
+                          onChange={(e) => setCurrentEmail(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && handleAddEmail()}
+                          className="flex-1 p-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" 
+                        />
+                        <button 
+                          onClick={handleAddEmail}
+                          disabled={!currentEmail.trim() || inviteEmails.includes(currentEmail.trim())}
+                          className="px-4 py-3 rounded-xl bg-secondary text-secondary-foreground text-sm font-medium hover:bg-secondary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Add
+                        </button>
+                      </div>
+                      
+                      {/* Email list */}
+                      {inviteEmails.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs text-muted-foreground">Invites will be sent to:</p>
+                          <div className="space-y-1 max-h-32 overflow-y-auto">
+                            {inviteEmails.map((email, index) => (
+                              <div key={index} className="flex items-center justify-between bg-secondary/50 rounded-lg px-3 py-2">
+                                <span className="text-sm">{email}</span>
+                                <button 
+                                  onClick={() => handleRemoveEmail(email)}
+                                  className="text-muted-foreground hover:text-destructive text-xs"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      <button onClick={() => setOnboardStep(3)}
+                        className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">
+                        {inviteEmails.length > 0 ? `Continue with ${inviteEmails.length} Invite${inviteEmails.length > 1 ? 's' : ''}` : 'Continue'} <ArrowRight className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => setOnboardStep(1)} className="w-full text-xs text-muted-foreground hover:text-foreground text-center">← Back</button>
+                    </div>
+                  )}
+                  {onboardStep === 3 && (
                     <div className="space-y-4 text-center">
                       <div className="w-16 h-16 rounded-2xl bg-green-500/10 flex items-center justify-center mx-auto">
                         <CircleCheckBig className="w-8 h-8 text-green-500" />
                       </div>
                       <h3 className="font-semibold text-lg">You're all set{familyName ? `, ${familyName}` : ''}!</h3>
-                      <p className="text-sm text-muted-foreground">Your family system is ready. Start adding expenses, tasks, and health records.</p>
-                      <button onClick={() => navigate('/simple-register')}
+                      <p className="text-sm text-muted-foreground">Complete your account setup to start using your family dashboard.</p>
+                      <button onClick={handleGoToDashboard}
                         className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity">
                         Go to Dashboard <ArrowRight className="w-4 h-4" />
                       </button>

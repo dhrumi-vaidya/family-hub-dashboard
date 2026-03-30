@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AppProvider, useApp } from "@/contexts/AppContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -50,7 +50,10 @@ function ProtectedRoute({ children, adminOnly = false, superAdminOnly = false }:
   const { isAuthenticated, user, selectedFamily } = useAuth();
   const { isModeSelected } = useApp();
 
-  if (!isAuthenticated) {
+  // Allow access to dashboard even if not authenticated (handled in component)
+  const isDashboardRoute = window.location.pathname === '/dashboard';
+
+  if (!isAuthenticated && !isDashboardRoute) {
     return <Navigate to="/login" replace />;
   }
 
@@ -61,6 +64,11 @@ function ProtectedRoute({ children, adminOnly = false, superAdminOnly = false }:
     }
     // Super admin trying to access family features - redirect to admin panel
     return <Navigate to="/super-admin" replace />;
+  }
+
+  // For dashboard, skip other checks if not authenticated (onboarding flow)
+  if (isDashboardRoute && !isAuthenticated) {
+    return <>{children}</>;
   }
 
   // Regular users (family members) need family and mode selection
@@ -132,7 +140,10 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 const AppRoutes = () => {
   const { isAuthenticated, user, isInitializing } = useAuth();
   const { isModeSelected } = useApp();
-  const showLayout = isAuthenticated && isModeSelected && user?.globalRole !== 'SUPER_ADMIN';
+  const location = useLocation();
+  const hasOnboardingData = (location?.state as any)?.fromOnboarding;
+  const isOnboardingFlow = hasOnboardingData && location.pathname === '/dashboard';
+  const showLayout = (isAuthenticated && isModeSelected && user?.globalRole !== 'SUPER_ADMIN') || isOnboardingFlow;
   const showSuperAdminLayout = isAuthenticated && user?.globalRole === 'SUPER_ADMIN';
 
   // Show loading state while initializing authentication
