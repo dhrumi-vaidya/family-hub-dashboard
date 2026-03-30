@@ -13,6 +13,9 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Plus, Home } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { CompleteRegistrationModal } from '@/components/modals/CompleteRegistrationModal';
 
 // ─── Placeholder empty data (replace with real API calls) ───────────────────
 const alerts: Alert[] = [];
@@ -33,13 +36,57 @@ const hasAnyData =
 
 export default function Dashboard() {
   const { mode } = useApp();
-  const { user, selectedFamily } = useAuth();
+  const { user, selectedFamily, isAuthenticated } = useAuth();
   const isFast = mode === 'fast';
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [onboardingData, setOnboardingData] = useState<{
+    familyName: string;
+    adminEmail: string;
+    inviteEmails: string[];
+    fromOnboarding: boolean;
+  } | null>(null);
+
+  // Check for onboarding data on mount
+  useEffect(() => {
+    const stateData = location.state as any;
+    if (stateData?.fromOnboarding) {
+      setOnboardingData(stateData);
+      setShowRegistrationModal(true);
+    }
+  }, [location.state]);
+
+  const handleRegistrationComplete = () => {
+    setShowRegistrationModal(false);
+    localStorage.removeItem('kutumbos_onboarding_data');
+    setOnboardingData(null);
+    // Refresh the page or trigger a re-render to show authenticated content
+    window.location.reload();
+  };
+
+  // If onboarding modal is showing, render minimal layout
+  if (showRegistrationModal && onboardingData && !isAuthenticated) {
+    return (
+      <>
+        <CompleteRegistrationModal
+          isOpen={showRegistrationModal}
+          onClose={() => setShowRegistrationModal(false)}
+          onComplete={handleRegistrationComplete}
+          prefillData={onboardingData}
+        />
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Setting up your family...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   const emailPrefix = user?.email?.split('@')[0] ?? '';
-  const displayName = emailPrefix || selectedFamily?.name || 'there';
-  const familyName = selectedFamily?.name ?? 'Your Family';
-  const greeting = `Welcome, ${displayName}`;
+  const displayName = emailPrefix || (onboardingData ? 'Family Admin' : selectedFamily?.name) || 'there';
+  const familyName = selectedFamily?.name ?? onboardingData?.familyName ?? 'Your Family';
+  const greeting = user ? `Welcome, ${displayName}` : `Welcome to ${familyName}`;
 
   if (!hasAnyData) {
     return (
@@ -124,5 +171,62 @@ export default function Dashboard() {
         </div>
       )}
     </div>
+  );
+
+  return (
+    <>
+      <div className="mx-auto max-w-7xl space-y-4 lg:space-y-5">
+        {/* ── Header ── */}
+        <div className={cn(
+          'flex items-start justify-between',
+          isFast ? 'mb-2' : 'mb-4'
+        )}>
+          <div>
+            <h1 className={cn('font-semibold text-foreground', isFast ? 'text-lg' : 'text-2xl')}>
+              {isFast ? familyName : greeting}
+            </h1>
+            {!isFast && (
+              <p className="mt-0.5 text-sm text-muted-foreground">{familyName}</p>
+            )}
+          </div>
+        </div>
+
+        {/* 1. Attention Layer */}
+        {alerts.length > 0 && (
+          <AttentionLayer alerts={alerts} mode={mode} />
+        )}
+
+        {/* 2. KPI Strip */}
+        <KPIStrip data={kpi} mode={mode} />
+
+        {/* 3. Quick Actions */}
+        <QuickActions mode={mode} />
+
+        {/* 4–9. Main panels */}
+        {isFast ? (
+          // Fast mode: 2-column dense grid
+          <div className="grid gap-4 lg:grid-cols-2">
+            <ResponsibilitiesPanel items={responsibilities} mode={mode} />
+            <ExpensePanel data={expenses} mode={mode} />
+            <HealthPanel members={healthMembers} mode={mode} />
+            <MemberPanel members={members} mode={mode} />
+            <NotificationsPanel notifications={notifications} mode={mode} />
+            <TrendChart data={trendData} mode={mode} />
+          </div>
+        ) : (
+          // Simple mode: single column, full-width cards
+          <div className="space-y-4">
+            <ResponsibilitiesPanel items={responsibilities} mode={mode} />
+            <ExpensePanel data={expenses} mode={mode} />
+            <HealthPanel members={healthMembers} mode={mode} />
+            <ExpensePanel data={expenses} mode={mode} />
+            <HealthPanel members={healthMembers} mode={mode} />
+            <MemberPanel members={members} mode={mode} />
+            <NotificationsPanel notifications={notifications} mode={mode} />
+            <TrendChart data={trendData} mode={mode} />
+          </div>
+        )}
+      </div>
+    </>
   );
 }

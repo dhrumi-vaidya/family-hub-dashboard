@@ -51,7 +51,7 @@ export default function SelectMode() {
 
     // Redirect based on role
     if (selectedFamily?.role === 'FAMILY_ADMIN') {
-      navigate('/');
+      navigate('/dashboard');
     } else {
       navigate('/member-dashboard');
     }
